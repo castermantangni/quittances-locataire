@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Quittances — Gestion complète</title>
 
-  <!-- PDF generator -->
-  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+  <!-- PDF generator (doit être chargé avant app.js pour l’export PDF) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,124 +18,169 @@
 </head>
 
 <body>
-  <div class="container">
+  <div class="wrap">
+
     <header>
-      <div class="header-top">
-        <div>
-          <h1>📋 Gestion de Quittances</h1>
-          <p class="subtitle">Génération automatique de quittances de loyer avec historique complet</p>
-        </div>
-        <div id="cloudStatusBadge" class="cloud-status disconnected">
-          <span class="status-dot"></span>
-          <span id="cloudStatusText">Non configuré</span>
-        </div>
+      <div>
+        <h1>Quittances</h1>
+        <p class="sub">Plusieurs logements • montants au cas par cas • signature auto • synchro Firebase (optionnel).</p>
       </div>
-      
-      <nav class="tabs" role="tablist">
-        <button class="tab" role="tab" aria-selected="true" data-tab="bailleur">👤 Bailleur</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="locataires">🏠 Locataires</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="generer">✨ Générer</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="historique">📚 Historique</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="outils">⚙️ Outils</button>
-      </nav>
+
+      <!-- Tabs (IMPORTANT : data-tab doit matcher app.js) -->
+      <div class="tabs" role="tablist">
+        <div class="tab" role="tab" tabindex="0" aria-selected="true" data-tab="bailleur">Bailleur</div>
+        <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="locataires">Locataires</div>
+        <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="quittances">Quittances PDF</div>
+        <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="historique">📚 Historique</div>
+      </div>
     </header>
 
-    <div class="main-grid">
-      <main>
-        <div class="card">
-          <div class="card-header">
-            <h2 class="card-title" id="mainTitle">—</h2>
-            <span class="card-badge" id="mainBadge">—</span>
-          </div>
-          <div class="card-body" id="mainContent"></div>
+    <div class="grid">
+      <!-- Colonne principale -->
+      <section class="card">
+        <div class="head">
+          <h2 id="leftTitle">—</h2>
+          <div class="hint" id="leftHint">—</div>
         </div>
-      </main>
+        <div class="body" id="leftBody"></div>
+      </section>
 
-      <aside id="sidebar" class="card">
-        <div class="card-header">
-          <h2 class="card-title">Statistiques</h2>
+      <!-- Sidebar / Outils -->
+      <aside class="card">
+        <div class="head">
+          <h2>Outils</h2>
+          <div class="hint">cloud • export</div>
         </div>
-        <div class="card-body" id="sidebarContent"></div>
+
+        <div class="body">
+          <!-- Badge cloud attendu par app.js -->
+          <div id="cloudStatus" class="badge warn">Cloud : non configuré</div>
+
+          <!-- Zone auth Firebase optionnelle -->
+          <div id="authBox" class="hidden" style="margin-top:12px">
+            <div class="row">
+              <div>
+                <label>Email</label>
+                <input id="auth_email" type="email" placeholder="ex: toi@email.com">
+              </div>
+              <div>
+                <label>Mot de passe</label>
+                <input id="auth_pass" type="password" placeholder="••••••••">
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="btn primary" id="btnLogin">Connexion</button>
+              <button class="btn" id="btnRegister">Créer un compte</button>
+              <button class="btn danger hidden" id="btnLogout">Déconnexion</button>
+            </div>
+
+            <div class="note" id="authMsg"></div>
+          </div>
+
+          <div class="note" id="cloudNote" style="margin-top:10px">
+            Pour activer la synchronisation : colle ta config Firebase dans
+            <span style="font-family:var(--mono)">window.FIREBASE_CONFIG</span>
+            (dans <span style="font-family:var(--mono)">assets/js/config.js</span>).
+          </div>
+
+          <div class="hr"></div>
+
+          <!-- Export / Import -->
+          <div>
+            <button class="btn" id="btnExport">Exporter (.json)</button>
+            <input type="file" id="fileImport" accept="application/json" class="hidden" />
+            <button class="btn" id="btnImport">Importer (.json)</button>
+            <div class="note">Pratique pour sauvegarder ou migrer vers un autre navigateur.</div>
+          </div>
+
+          <div class="hr"></div>
+
+          <!-- Reset + Toast -->
+          <div>
+            <button class="btn danger" id="btnReset">Réinitialiser</button>
+            <div class="toast" id="toast"></div>
+          </div>
+        </div>
       </aside>
     </div>
-  </div>
 
-  <!-- PDF Template -->
-  <div id="pdfTemplate" class="hidden">
-    <div class="pdf-root">
-      <div class="pdf-top">
-        <div>
-          <div class="pdf-badge">QUITTANCE • LOYER</div>
-          <h2 class="pdf-title">Quittance de loyer</h2>
-          <p class="pdf-period" id="pdfPeriod">Période : —</p>
+    <!-- PDF Template (attendu par app.js) -->
+    <div id="pdfTemplate" class="hidden">
+      <div class="pdf-root">
+        <div class="pdf-top">
+          <div>
+            <div class="pdf-badge">QUITTANCE • LOYER</div>
+            <h2 class="pdf-title">Quittance de loyer</h2>
+            <p class="pdf-period" id="pdfPeriod">Période : —</p>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:#334155">Référence</div>
+            <div style="font-family:var(--mono);font-size:12px;color:#0b1220" id="pdfRef">—</div>
+          </div>
         </div>
-        <div style="text-align:right">
-          <div style="font-size:12px;color:#334155">Référence</div>
-          <div style="font-family:var(--mono);font-size:12px;color:#0b1220" id="pdfRef">—</div>
+
+        <div class="pdf-boxes">
+          <div class="pdf-box">
+            <h3>Bailleur</h3>
+            <div class="pdf-line" id="pdfLandlordLines">—</div>
+          </div>
+          <div class="pdf-box">
+            <h3>Locataire</h3>
+            <div class="pdf-line" id="pdfTenantLines">—</div>
+          </div>
         </div>
-      </div>
 
-      <div class="pdf-boxes">
-        <div class="pdf-box">
-          <h3>Bailleur</h3>
-          <div class="pdf-line" id="pdfLandlordLines">—</div>
+        <div class="pdf-prop">
+          <h3>Logement</h3>
+          <div class="pdf-line" id="pdfProperty">—</div>
+          <div class="pdf-muted" id="pdfPropertyLabel"></div>
         </div>
-        <div class="pdf-box">
-          <h3>Locataire</h3>
-          <div class="pdf-line" id="pdfTenantLines">—</div>
+
+        <table class="pdf-table">
+          <thead>
+            <tr>
+              <th>Détail</th>
+              <th>Montant</th>
+            </tr>
+          </thead>
+          <tbody id="pdfLines"></tbody>
+          <tfoot>
+            <tr>
+              <td style="font-weight:800">Total payé</td>
+              <td style="font-weight:900" id="pdfTotal">—</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="pdf-total">
+          <p class="big" id="pdfTotalLine">Total : —</p>
+          <p class="small">
+            Le bailleur reconnaît avoir reçu la somme indiquée ci-dessus au titre du paiement
+            du loyer et des charges pour la période mentionnée. Cette quittance atteste du paiement intégral des sommes dues.
+          </p>
         </div>
-      </div>
 
-      <div class="pdf-prop">
-        <h3>Logement</h3>
-        <div class="pdf-line" id="pdfProperty">—</div>
-        <div class="pdf-muted" id="pdfPropertyLabel"></div>
-      </div>
-
-      <table class="pdf-table">
-        <thead>
-          <tr>
-            <th>Détail</th>
-            <th>Montant</th>
-          </tr>
-        </thead>
-        <tbody id="pdfLines"></tbody>
-        <tfoot>
-          <tr>
-            <td style="font-weight:800">Total payé</td>
-            <td style="font-weight:900" id="pdfTotal">—</td>
-          </tr>
-        </tfoot>
-      </table>
-
-      <div class="pdf-total">
-        <p class="big" id="pdfTotalLine">Total : —</p>
-        <p class="small">
-          Le bailleur reconnaît avoir reçu la somme indiquée ci-dessus au titre du paiement
-          du loyer et des charges pour la période mentionnée. Cette quittance atteste du paiement intégral des sommes
-          dues.
-        </p>
-      </div>
-
-      <div class="pdf-footer">
-        <div class="left" id="pdfFooterLeft">
-          Fait à —, le —<br />
-          Paiement : —<br />
-          <span style="color:#64748b">Document généré automatiquement.</span>
-        </div>
-        <div class="pdf-sign">
-          <p class="signatureText" id="pdfSignText">—</p>
-          <div class="sigbox">Signature du bailleur</div>
+        <div class="pdf-footer">
+          <div class="left" id="pdfFooterLeft">
+            Fait à —, le —<br />
+            Paiement : —<br />
+            <span style="color:#64748b">Document généré automatiquement.</span>
+          </div>
+          <div class="pdf-sign">
+            <p class="signatureText" id="pdfSignText">—</p>
+            <div class="sigbox">Signature du bailleur</div>
+          </div>
         </div>
       </div>
     </div>
+
   </div>
 
-  <!-- Toast container -->
-  <div id="toastContainer"></div>
-
-  <!-- Scripts -->
+  <!-- Config Firebase (optionnel) -->
   <script src="assets/js/config.js"></script>
+
+  <!-- App -->
   <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>

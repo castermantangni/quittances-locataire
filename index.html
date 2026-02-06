@@ -8,20 +8,21 @@
   <!-- PDF generator (HTML -> PDF) -->
   <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 
+  <!-- Signature font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+
   <style>
     :root{
       --bg:#0b1220;
-      --card:#0f1b31;
-      --muted:#9fb0cc;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.03);
+      --border: rgba(255,255,255,.10);
       --text:#eaf0ff;
-      --border:rgba(255,255,255,.10);
-      --accent:#6ea8ff;
-      --accent2:#7ee7d6;
-      --danger:#ff6e6e;
-      --ok:#7ee7a7;
+      --muted:#9fb0cc;
       --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius:16px;
-      --radius2:22px;
+      --radius:22px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
@@ -29,31 +30,19 @@
     body{
       margin:0;
       font-family:var(--sans);
-      background: radial-gradient(1200px 800px at 20% 0%, rgba(110,168,255,.25), transparent 55%),
-                  radial-gradient(1200px 800px at 80% 20%, rgba(126,231,214,.18), transparent 55%),
-                  var(--bg);
       color:var(--text);
-      padding:28px;
+      background:
+        radial-gradient(1200px 800px at 20% 0%, rgba(110,168,255,.25), transparent 55%),
+        radial-gradient(1200px 800px at 80% 20%, rgba(126,231,214,.18), transparent 55%),
+        var(--bg);
+      padding:26px;
     }
-    a{ color:inherit; }
     .wrap{ max-width:1100px; margin:0 auto; }
-    header{
-      display:flex; align-items:flex-end; justify-content:space-between;
-      gap:16px; margin-bottom:18px;
-    }
-    .title{
-      display:flex; flex-direction:column; gap:6px;
-    }
-    .title h1{
-      margin:0; font-size:28px; letter-spacing:.2px;
-    }
-    .title p{
-      margin:0; color:var(--muted); font-size:14px;
-    }
-    .pillbar{
-      display:flex; gap:10px; flex-wrap:wrap;
-    }
-    .pill{
+    header{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-bottom:18px; }
+    h1{ margin:0; font-size:28px; letter-spacing:.2px; }
+    .sub{ margin:6px 0 0 0; color:var(--muted); font-size:14px; line-height:1.35; }
+    .tabs{ display:flex; gap:10px; flex-wrap:wrap; }
+    .tab{
       border:1px solid var(--border);
       background: rgba(255,255,255,.04);
       color:var(--text);
@@ -64,23 +53,18 @@
       user-select:none;
       transition:.15s;
     }
-    .pill[aria-selected="true"]{
+    .tab[aria-selected="true"]{
       background: linear-gradient(135deg, rgba(110,168,255,.22), rgba(126,231,214,.14));
       border-color: rgba(110,168,255,.45);
     }
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap:16px;
-    }
-    @media (max-width: 980px){
-      .grid{ grid-template-columns: 1fr; }
-    }
+    .grid{ display:grid; grid-template-columns: 1.15fr .85fr; gap:16px; }
+    @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
+
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
       border:1px solid var(--border);
-      border-radius: var(--radius2);
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow:hidden;
     }
@@ -90,33 +74,15 @@
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:12px;
+      gap:10px;
     }
-    .card .head h2{
-      margin:0; font-size:16px; letter-spacing:.2px;
-    }
-    .card .head .hint{
-      color:var(--muted);
-      font-size:12px;
-      font-family:var(--mono);
-    }
+    .card .head h2{ margin:0; font-size:16px; }
+    .hint{ font-family:var(--mono); font-size:12px; color:var(--muted); }
     .card .body{ padding:16px; }
 
-    .row{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-      margin-bottom:12px;
-    }
-    @media (max-width: 680px){
-      .row{ grid-template-columns: 1fr; }
-    }
-    label{
-      display:block;
-      font-size:12px;
-      color:var(--muted);
-      margin-bottom:6px;
-    }
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px; }
+    @media (max-width: 680px){ .row{ grid-template-columns: 1fr; } }
+    label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
     input, textarea, select{
       width:100%;
       padding:11px 12px;
@@ -127,11 +93,8 @@
       outline:none;
     }
     textarea{ min-height: 86px; resize: vertical; }
-    input::placeholder, textarea::placeholder{ color:rgba(159,176,204,.7); }
-    .actions{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
-      margin-top:10px;
-    }
+
+    .actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
     .btn{
       border:1px solid var(--border);
       background: rgba(255,255,255,.05);
@@ -139,7 +102,6 @@
       padding:10px 12px;
       border-radius: 12px;
       cursor:pointer;
-      transition:.15s;
       font-size:13px;
       display:inline-flex;
       align-items:center;
@@ -154,231 +116,130 @@
       background: rgba(255,110,110,.10);
       border-color: rgba(255,110,110,.35);
     }
-    .btn:active{ transform: translateY(1px); }
-    .note{
-      color: var(--muted);
-      font-size:12px;
-      margin-top:10px;
-      line-height:1.35;
-    }
+    .btn:disabled{ opacity:.45; cursor:not-allowed; }
 
-    .list{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
+    .note{ color:var(--muted); font-size:12px; line-height:1.35; margin-top:10px; }
+    .toast{ margin-top:10px; color:var(--muted); font-size:12px; }
+
+    .list{ display:flex; flex-direction:column; gap:10px; }
     .item{
       border:1px solid var(--border);
       background: rgba(0,0,0,.14);
       border-radius: 14px;
       padding:12px;
       display:flex;
+      justify-content:space-between;
       gap:10px;
       align-items:flex-start;
-      justify-content:space-between;
     }
-    .item .meta{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      min-width:0;
-    }
-    .item .meta .name{
-      font-weight:650;
-      letter-spacing:.2px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width: 520px;
-    }
-    .item .meta .sub{
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.35;
-    }
-    .item .right{
-      display:flex;
-      gap:8px;
-      flex-shrink:0;
-    }
+    .item .meta{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .item .meta .name{ font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:520px; }
+    .item .meta .sub{ color:var(--muted); font-size:12px; line-height:1.35; }
+    .item .right{ display:flex; gap:8px; flex-shrink:0; }
 
-    .split{
-      display:flex;
-      flex-direction:column;
-      gap:16px;
-    }
-
-    .toast{
-      margin-top:10px;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    /* Hidden PDF template (will be converted to PDF) */
-    .pdf-root{
-      width: 210mm;
-      min-height: 297mm;
-      padding: 18mm 16mm;
-      background: #ffffff;
-      color: #0b1220;
-      font-family: var(--sans);
-    }
-    .pdf-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:14mm;
-      margin-bottom: 10mm;
-    }
-    .pdf-badge{
+    .badge{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      font-size:12px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:#334155;
-      padding:6px 10px;
-      border:1px solid #e2e8f0;
+      padding:8px 10px;
       border-radius:999px;
-    }
-    .pdf-title{
-      margin: 8px 0 0 0;
-      font-size: 26px;
-      letter-spacing:.2px;
-      color:#0b1220;
-    }
-    .pdf-period{
-      margin: 4px 0 0 0;
-      font-size: 14px;
-      color:#334155;
-    }
-    .pdf-boxes{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8mm;
-      margin-bottom: 8mm;
-    }
-    .pdf-box{
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 10mm 10mm;
-      background: #fbfdff;
-    }
-    .pdf-box h3{
-      margin:0 0 6px 0;
-      font-size: 12px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:#475569;
-    }
-    .pdf-line{
-      margin: 3px 0;
-      font-size: 12.5px;
-      color:#0b1220;
-      white-space:pre-line;
-    }
-    .pdf-prop{
-      border: 1px dashed #cbd5e1;
-      border-radius: 14px;
-      padding: 8mm 10mm;
-      margin-bottom: 8mm;
-      background:#ffffff;
-    }
-    .pdf-prop h3{
-      margin:0 0 6px 0;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.14);
       font-size:12px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:#475569;
+      color:var(--muted);
+      font-family: var(--mono);
     }
-    .pdf-table{
-      width:100%;
-      border-collapse: collapse;
-      margin-top: 2mm;
-      font-size: 12.5px;
+    .badge.ok{ border-color: rgba(126,231,167,.35); background: rgba(126,231,167,.10); color: rgba(234,255,245,.9); }
+    .badge.warn{ border-color: rgba(255,110,110,.35); background: rgba(255,110,110,.10); color: rgba(255,245,245,.95); }
+
+    .hr{ height:1px; background: var(--border); margin: 12px 0; }
+    .mini{ font-size:12px; color:var(--muted); line-height:1.35; }
+    .hidden{ display:none !important; }
+
+    /* PDF */
+    .pdf-root{
+      width:210mm;
+      min-height:297mm;
+      padding:18mm 16mm;
+      background:#fff;
+      color:#0b1220;
+      font-family:var(--sans);
     }
-    .pdf-table th, .pdf-table td{
-      border-bottom: 1px solid #e2e8f0;
-      padding: 10px 6px;
-      text-align:left;
+    .pdf-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:14mm; margin-bottom:10mm; }
+    .pdf-badge{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+      color:#334155; padding:6px 10px;
+      border:1px solid #e2e8f0; border-radius:999px;
     }
-    .pdf-table th{
-      font-size: 12px;
-      color:#475569;
-      font-weight:650;
-    }
-    .pdf-table td:last-child, .pdf-table th:last-child{
-      text-align:right;
-    }
+    .pdf-title{ margin: 8px 0 0 0; font-size: 26px; letter-spacing:.2px; }
+    .pdf-period{ margin: 4px 0 0 0; font-size:14px; color:#334155; }
+
+    .pdf-boxes{ display:grid; grid-template-columns: 1fr 1fr; gap: 8mm; margin-bottom: 8mm; }
+    .pdf-box{ border: 1px solid #e2e8f0; border-radius: 14px; padding: 10mm; background:#fbfdff; }
+    .pdf-box h3{ margin:0 0 6px 0; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#475569; }
+    .pdf-line{ margin:3px 0; font-size:12.5px; white-space:pre-line; }
+
+    .pdf-prop{ border: 1px dashed #cbd5e1; border-radius: 14px; padding: 8mm 10mm; margin-bottom: 8mm; }
+    .pdf-prop h3{ margin:0 0 6px 0; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#475569; }
+    .pdf-muted{ color:#64748b; font-size:12px; }
+
+    .pdf-table{ width:100%; border-collapse: collapse; font-size:12.5px; }
+    .pdf-table th, .pdf-table td{ border-bottom: 1px solid #e2e8f0; padding:10px 6px; text-align:left; }
+    .pdf-table th{ font-size:12px; color:#475569; font-weight:650; }
+    .pdf-table td:last-child, .pdf-table th:last-child{ text-align:right; }
+
     .pdf-total{
-      margin-top: 6mm;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 8mm 10mm;
+      margin-top:6mm;
+      border:1px solid #e2e8f0;
+      border-radius:14px;
+      padding:8mm 10mm;
       background: linear-gradient(135deg, rgba(110,168,255,.12), rgba(126,231,214,.10));
     }
-    .pdf-total .big{
-      font-size: 18px;
-      font-weight: 750;
-      margin: 0;
-    }
-    .pdf-total .small{
-      margin: 6px 0 0 0;
-      color:#334155;
-      font-size: 12.5px;
-      line-height:1.45;
-    }
+    .pdf-total .big{ font-size:18px; font-weight:750; margin:0; }
+    .pdf-total .small{ margin:6px 0 0 0; color:#334155; font-size:12.5px; line-height:1.45; }
+
     .pdf-footer{
       display:flex;
       justify-content:space-between;
       align-items:flex-end;
       gap:10mm;
-      margin-top: 10mm;
-      padding-top: 8mm;
-      border-top: 1px solid #e2e8f0;
+      margin-top:10mm;
+      padding-top:8mm;
+      border-top:1px solid #e2e8f0;
     }
-    .pdf-footer .left{
-      color:#334155;
-      font-size: 11.5px;
-      line-height:1.45;
-    }
-    .pdf-sign{
-      width: 70mm;
-      text-align:right;
-      font-size: 12.5px;
+    .pdf-footer .left{ color:#334155; font-size:11.5px; line-height:1.45; }
+    .pdf-sign{ width:70mm; text-align:right; }
+    .signatureText{
+      font-family:"Great Vibes","Brush Script MT",cursive;
+      font-size:34px;
+      line-height:1;
+      margin:0;
       color:#0b1220;
     }
-    .pdf-sign .sigbox{
-      margin-top: 18mm;
-      border-top: 1px solid #0b1220;
-      padding-top: 6px;
-      color:#334155;
-      font-size: 11.5px;
-    }
-    .hidden{ display:none !important; }
+    .sigbox{ margin-top:8mm; border-top:1px solid #0b1220; padding-top:6px; color:#334155; font-size:11.5px; }
   </style>
 </head>
 
 <body>
 <div class="wrap">
   <header>
-    <div class="title">
+    <div>
       <h1>Quittances</h1>
-      <p>Enregistre tes locataires (loyer HC + charges) et génère des quittances PDF au design épuré.</p>
+      <p class="sub">Plusieurs logements • montants au cas par cas • signature auto • synchro Firebase (optionnel).</p>
     </div>
-    <div class="pillbar" role="tablist" aria-label="Navigation">
-      <div class="pill" role="tab" tabindex="0" aria-selected="true" data-tab="bailleur">Bailleur</div>
-      <div class="pill" role="tab" tabindex="0" aria-selected="false" data-tab="locataires">Locataires</div>
-      <div class="pill" role="tab" tabindex="0" aria-selected="false" data-tab="quittances">Quittances PDF</div>
+    <div class="tabs" role="tablist">
+      <div class="tab" role="tab" tabindex="0" aria-selected="true" data-tab="bailleur">Bailleur</div>
+      <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="locataires">Locataires</div>
+      <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="quittances">Quittances PDF</div>
     </div>
   </header>
 
   <div class="grid">
-    <section class="card" id="leftCard">
+    <section class="card">
       <div class="head">
-        <h2 id="leftTitle">Informations bailleur</h2>
-        <div class="hint" id="leftHint">stockage local • aucun serveur</div>
+        <h2 id="leftTitle">—</h2>
+        <div class="hint" id="leftHint">—</div>
       </div>
       <div class="body" id="leftBody"></div>
     </section>
@@ -386,41 +247,62 @@
     <aside class="card">
       <div class="head">
         <h2>Outils</h2>
-        <div class="hint">export/import</div>
+        <div class="hint">cloud • export</div>
       </div>
       <div class="body">
-        <div class="split">
-          <div>
-            <button class="btn" id="btnExport">Exporter les données (.json)</button>
-            <input type="file" id="fileImport" accept="application/json" class="hidden" />
-            <button class="btn" id="btnImport">Importer des données (.json)</button>
-            <div class="note">
-              <b>Astuce :</b> sur GitHub Pages, l’app n’a pas de base de données.
-              <br/>L’export/import te permet de sauvegarder ou transférer tes infos.
+        <div>
+          <div id="cloudStatus" class="badge warn">Cloud : non configuré</div>
+
+          <div id="authBox" class="hidden" style="margin-top:12px">
+            <div class="row">
+              <div>
+                <label>Email</label>
+                <input id="auth_email" type="email" placeholder="ex: toi@email.com">
+              </div>
+              <div>
+                <label>Mot de passe</label>
+                <input id="auth_pass" type="password" placeholder="••••••••">
+              </div>
             </div>
+            <div class="actions">
+              <button class="btn primary" id="btnLogin">Connexion</button>
+              <button class="btn" id="btnRegister">Créer un compte</button>
+              <button class="btn danger hidden" id="btnLogout">Déconnexion</button>
+            </div>
+            <div class="note" id="authMsg"></div>
           </div>
 
-          <div>
-            <button class="btn danger" id="btnReset">Réinitialiser (effacer tout)</button>
-            <div class="note">
-              Les données sont stockées dans ton navigateur (LocalStorage).
-              Si tu changes d’ordinateur/navigateur, tu ne les verras pas sans import.
-            </div>
+          <div class="note" id="cloudNote" style="margin-top:10px">
+            Pour activer la synchronisation : colle ta config Firebase dans <span style="font-family:var(--mono)">window.FIREBASE_CONFIG</span> (en bas du fichier).
           </div>
+        </div>
 
+        <div class="hr"></div>
+
+        <div>
+          <button class="btn" id="btnExport">Exporter (.json)</button>
+          <input type="file" id="fileImport" accept="application/json" class="hidden" />
+          <button class="btn" id="btnImport">Importer (.json)</button>
+          <div class="note">Pratique pour sauvegarder ou migrer vers un autre navigateur.</div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div>
+          <button class="btn danger" id="btnReset">Réinitialiser</button>
           <div class="toast" id="toast"></div>
         </div>
       </div>
     </aside>
   </div>
 
-  <!-- Hidden PDF template -->
+  <!-- PDF template -->
   <div id="pdfTemplate" class="hidden">
     <div class="pdf-root">
       <div class="pdf-top">
         <div>
           <div class="pdf-badge">QUITTANCE • LOYER</div>
-          <h2 class="pdf-title" id="pdfTitle">Quittance de loyer</h2>
+          <h2 class="pdf-title">Quittance de loyer</h2>
           <p class="pdf-period" id="pdfPeriod">Période : —</p>
         </div>
         <div style="text-align:right">
@@ -443,47 +325,27 @@
       <div class="pdf-prop">
         <h3>Logement</h3>
         <div class="pdf-line" id="pdfProperty">—</div>
+        <div class="pdf-muted" id="pdfPropertyLabel"></div>
       </div>
 
       <table class="pdf-table">
-        <thead>
-          <tr>
-            <th>Détail</th>
-            <th>Montant</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Loyer (hors charges)</td>
-            <td id="pdfRent">—</td>
-          </tr>
-          <tr>
-            <td>Provision pour charges</td>
-            <td id="pdfCharges">—</td>
-          </tr>
-          <tr>
-            <td style="font-weight:700">Total payé</td>
-            <td style="font-weight:800" id="pdfTotal">—</td>
-          </tr>
-        </tbody>
+        <thead><tr><th>Détail</th><th>Montant</th></tr></thead>
+        <tbody id="pdfLines"></tbody>
+        <tfoot><tr><td style="font-weight:800">Total payé</td><td style="font-weight:900" id="pdfTotal">—</td></tr></tfoot>
       </table>
 
       <div class="pdf-total">
         <p class="big" id="pdfTotalLine">Total : —</p>
-        <p class="small" id="pdfStatement">
+        <p class="small">
           Le bailleur reconnaît avoir reçu la somme indiquée ci-dessus au titre du paiement
           du loyer et des charges pour la période mentionnée. Cette quittance atteste du paiement intégral des sommes dues.
         </p>
       </div>
 
       <div class="pdf-footer">
-        <div class="left" id="pdfFooterLeft">
-          Fait à —, le —<br/>
-          Paiement : —<br/>
-          <span style="color:#64748b">Document généré automatiquement.</span>
-        </div>
+        <div class="left" id="pdfFooterLeft">Fait à —, le —<br/>Paiement : —<br/><span style="color:#64748b">Document généré automatiquement.</span></div>
         <div class="pdf-sign">
-          <div style="font-weight:700" id="pdfSignName">—</div>
+          <p class="signatureText" id="pdfSignText">—</p>
           <div class="sigbox">Signature du bailleur</div>
         </div>
       </div>
@@ -492,109 +354,243 @@
 
 </div>
 
+<!--
+  ✅ FIREBASE (OPTIONNEL) — COLLE ICI LA CONFIG DE TA WEB APP
+  Firebase Console → Project settings → Your apps → Web app → “Config”
+-->
 <script>
-  // -------------------------
-  // State & Storage
-  // -------------------------
-  const STORAGE_KEY = "quittances_state_v1";
+     window.FIREBASE_CONFIG = {
+        apiKey: "AIzaSyC5ukxwBWQgmC4k3-JOeJ0XlS_8ksXAZdk",
+        authDomain: "gestionlocative-be708.firebaseapp.com",
+        projectId: "gestionlocative-be708",
+        storageBucket: "gestionlocative-be708.firebasestorage.app",
+        messagingSenderId: "125095758052",
+        appId: "1:125095758052:web:2998efa253a1b37d6844f1",
+        measurementId: "G-7T2RL90FGB"
+     };
+</script>
 
+<script type="module">
+  // --------------------
+  // Utils
+  // --------------------
+  const $ = (sel) => document.querySelector(sel);
+  function uid(){ return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("id_" + Math.random().toString(16).slice(2) + "_" + Date.now()); }
+  function euro(n){ return Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"}); }
+  function toast(msg){ $("#toast").textContent = msg; setTimeout(()=>{ if($("#toast").textContent===msg) $("#toast").textContent=""; }, 3500); }
+  function escapeHtml(s){ return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+  function toISODate(d){ const pad=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+  function formatFRDate(iso){ const [y,m,d]=iso.split("-").map(Number); return new Date(y,(m||1)-1,d||1).toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"}); }
+  function monthLabel(year, mi){ return new Date(year,mi,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"}); }
+  function cap(s){ return s ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
+
+  // --------------------
+  // State (local + cloud)
+  // --------------------
+  const STORAGE_KEY = "quittances_state_v3";
   const defaultState = {
-    landlord: {
-      fullName: "",
-      address: "",
-      email: "",
-      phone: "",
-      city: "",
-      signatureName: ""
-    },
+    landlord: { fullName:"", address:"", email:"", phone:"", city:"", signatureName:"" },
     tenants: []
   };
 
-  function loadState(){
+  function normalizeState(data){
+    const landlord = { ...defaultState.landlord, ...(data?.landlord || {}) };
+    const tenantsRaw = Array.isArray(data?.tenants) ? data.tenants : [];
+    const tenants = tenantsRaw.map(t => {
+      const tenant = { ...t };
+      tenant.id = tenant.id || uid();
+      tenant.fullName = tenant.fullName || "";
+      tenant.tenantAddress = tenant.tenantAddress || "";
+      tenant.paymentMethod = tenant.paymentMethod || "Virement";
+      if(!Array.isArray(tenant.properties)){
+        // migration legacy
+        tenant.properties = [{
+          id: uid(),
+          label: "Logement 1",
+          address: tenant.propertyAddress || "",
+          rentHc: Number(tenant.rentHc || 0),
+          charges: Number(tenant.charges || 0)
+        }];
+      }
+      tenant.properties = tenant.properties.map(p => ({
+        id: p.id || uid(),
+        label: p.label || "Logement",
+        address: p.address || "",
+        rentHc: Number(p.rentHc || 0),
+        charges: Number(p.charges || 0),
+      }));
+      delete tenant.propertyAddress; delete tenant.rentHc; delete tenant.charges;
+      return tenant;
+    });
+    return { landlord, tenants };
+  }
+
+  function loadLocal(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       if(!raw) return structuredClone(defaultState);
-      const parsed = JSON.parse(raw);
-      return {
-        landlord: { ...defaultState.landlord, ...(parsed.landlord || {}) },
-        tenants: Array.isArray(parsed.tenants) ? parsed.tenants : []
+      return normalizeState(JSON.parse(raw));
+    }catch{ return structuredClone(defaultState); }
+  }
+  function saveLocal(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ landlord: state.landlord, tenants: state.tenants }));
+  }
+
+  let state = loadLocal();
+
+  // --------------------
+  // Firebase (optional)
+  // --------------------
+  const FIREBASE_VERSION = "10.12.2";
+  const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
+
+  let cloud = {
+    enabled:false, auth:null, db:null, user:null, unsub:null, applying:false
+  };
+
+  function setCloudBadge(text, ok){
+    const el = $("#cloudStatus");
+    el.textContent = text;
+    el.classList.remove("ok","warn");
+    el.classList.add(ok ? "ok" : "warn");
+  }
+  function setAuthMsg(msg){ $("#authMsg").textContent = msg || ""; }
+
+  async function initFirebase(){
+    if(!FIREBASE_CONFIG || !FIREBASE_CONFIG.apiKey || String(FIREBASE_CONFIG.apiKey).includes("...")){
+      setCloudBadge("Cloud : non configuré", false);
+      return;
+    }
+
+    const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js`);
+    const { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } =
+      await import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth.js`);
+    const { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } =
+      await import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore.js`);
+
+    const app = initializeApp(FIREBASE_CONFIG);
+    cloud.auth = getAuth(app);
+    cloud.db = getFirestore(app);
+    cloud.enabled = true;
+
+    $("#authBox").classList.remove("hidden");
+    setCloudBadge("Cloud : prêt (connecte-toi)", true);
+
+    $("#btnLogin").addEventListener("click", async () => {
+      setAuthMsg("");
+      try{
+        await signInWithEmailAndPassword(cloud.auth, $("#auth_email").value.trim(), $("#auth_pass").value);
+      }catch(e){ setAuthMsg(e?.message || "Erreur connexion"); }
+    });
+    $("#btnRegister").addEventListener("click", async () => {
+      setAuthMsg("");
+      try{
+        await createUserWithEmailAndPassword(cloud.auth, $("#auth_email").value.trim(), $("#auth_pass").value);
+      }catch(e){ setAuthMsg(e?.message || "Erreur inscription"); }
+    });
+    $("#btnLogout").addEventListener("click", async () => {
+      setAuthMsg("");
+      try{ await signOut(cloud.auth); }catch(e){ setAuthMsg("Erreur déconnexion"); }
+    });
+
+    async function cloudWrite(){
+      const ref = doc(cloud.db, "users", cloud.user.uid, "app", "state");
+      await setDoc(ref, { landlord: state.landlord, tenants: state.tenants, updatedAt: serverTimestamp() }, { merge:true });
+    }
+
+    onAuthStateChanged(cloud.auth, async (user) => {
+      cloud.user = user || null;
+
+      if(cloud.unsub){ cloud.unsub(); cloud.unsub = null; }
+
+      if(!cloud.user){
+        $("#btnLogout").classList.add("hidden");
+        setCloudBadge("Cloud : prêt (déconnecté)", true);
+        setAuthMsg("Déconnecté. Les modifications restent locales.");
+        return;
+      }
+
+      $("#btnLogout").classList.remove("hidden");
+      setCloudBadge(`Cloud : connecté (${cloud.user.email || cloud.user.uid})`, true);
+      setAuthMsg("Connecté. Synchronisation active.");
+
+      const ref = doc(cloud.db, "users", cloud.user.uid, "app", "state");
+      const snap = await getDoc(ref);
+
+      if(snap.exists()){
+        cloud.applying = true;
+        state = normalizeState(snap.data());
+        cloud.applying = false;
+        saveLocal();
+        rerender();
+        toast("Données cloud chargées ✅");
+      }else{
+        await cloudWrite();
+        toast("Cloud initialisé ✅");
+      }
+
+      cloud.unsub = onSnapshot(ref, (docSnap) => {
+        if(!docSnap.exists()) return;
+        if(cloud.applying) return;
+        const incoming = normalizeState(docSnap.data());
+        if(JSON.stringify(incoming) === JSON.stringify(state)) return;
+        cloud.applying = true;
+        state = incoming;
+        cloud.applying = false;
+        saveLocal();
+        rerender();
+        toast("Mise à jour reçue du cloud 🔄");
+      });
+
+      // expose save
+      window.__cloudSave = async () => {
+        if(!cloud.enabled || !cloud.user) return false;
+        try{ await cloudWrite(); return true; }catch(e){ console.error(e); toast("Erreur cloud ⚠️"); return false; }
       };
-    }catch(e){
-      return structuredClone(defaultState);
+    });
+  }
+
+  async function saveState(){
+    saveLocal();
+    if(typeof window.__cloudSave === "function" && !cloud.applying){
+      const ok = await window.__cloudSave();
+      if(ok) return;
     }
   }
 
-  function saveState(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-
-  let state = loadState();
-
-  // -------------------------
-  // Helpers
-  // -------------------------
-  const $ = (sel) => document.querySelector(sel);
-
-  function uid(){
-    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-    return "id_" + Math.random().toString(16).slice(2) + "_" + Date.now();
-  }
-
-  function euro(n){
-    const val = Number(n || 0);
-    return val.toLocaleString("fr-FR", { style:"currency", currency:"EUR" });
-  }
-
-  function monthLabel(year, monthIndex){
-    const d = new Date(year, monthIndex, 1);
-    return d.toLocaleDateString("fr-FR", { month:"long", year:"numeric" });
-  }
-
-  function toast(msg){
-    $("#toast").textContent = msg;
-    setTimeout(() => { if($("#toast").textContent === msg) $("#toast").textContent = ""; }, 3500);
-  }
-
+  // --------------------
+  // Tabs / rendering
+  // --------------------
+  function currentTab(){ return document.querySelector('.tab[aria-selected="true"]')?.dataset.tab || "bailleur"; }
   function setTab(tab){
-    document.querySelectorAll(".pill[role='tab']").forEach(p => {
-      const on = p.dataset.tab === tab;
-      p.setAttribute("aria-selected", on ? "true" : "false");
-    });
+    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab === tab ? "true" : "false"));
     render(tab);
   }
-
-  // -------------------------
-  // Renderers
-  // -------------------------
-  function render(tab){
-    if(tab === "bailleur") renderLandlord();
-    if(tab === "locataires") renderTenants();
-    if(tab === "quittances") renderReceipts();
-  }
+  function rerender(){ render(currentTab()); }
 
   function renderLandlord(){
     $("#leftTitle").textContent = "Informations bailleur";
-    $("#leftHint").textContent = "Ces infos apparaissent sur les quittances";
+    $("#leftHint").textContent = "Signature manuscrite auto dans le PDF";
     $("#leftBody").innerHTML = `
       <div class="row">
         <div>
-          <label>Nom / Raison sociale</label>
-          <input id="l_fullName" placeholder="Ex : Jean Dupont" value="${escapeHtml(state.landlord.fullName)}"/>
+          <label>Nom / Prénom (ou raison sociale)</label>
+          <input id="l_fullName" value="${escapeHtml(state.landlord.fullName)}" placeholder="Ex : Jean Dupont">
         </div>
         <div>
           <label>Ville (pour “Fait à …”)</label>
-          <input id="l_city" placeholder="Ex : Paris" value="${escapeHtml(state.landlord.city)}"/>
+          <input id="l_city" value="${escapeHtml(state.landlord.city)}" placeholder="Ex : Paris">
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>Email</label>
-          <input id="l_email" placeholder="ex: jean@exemple.fr" value="${escapeHtml(state.landlord.email)}"/>
+          <input id="l_email" value="${escapeHtml(state.landlord.email)}" placeholder="ex: jean@exemple.fr">
         </div>
         <div>
           <label>Téléphone</label>
-          <input id="l_phone" placeholder="ex: 06..." value="${escapeHtml(state.landlord.phone)}"/>
+          <input id="l_phone" value="${escapeHtml(state.landlord.phone)}" placeholder="ex: 06...">
         </div>
       </div>
 
@@ -606,7 +602,13 @@
       <div class="row" style="margin-top:12px">
         <div>
           <label>Nom affiché pour la signature (optionnel)</label>
-          <input id="l_signatureName" placeholder="Par défaut : Nom / Raison sociale" value="${escapeHtml(state.landlord.signatureName)}"/>
+          <input id="l_signatureName" value="${escapeHtml(state.landlord.signatureName)}" placeholder="Par défaut : Nom / Prénom">
+          <div class="mini" style="margin-top:6px">
+            Aperçu signature :
+            <span style="font-family:'Great Vibes','Brush Script MT',cursive;font-size:28px;color:rgba(234,240,255,.95)">
+              ${escapeHtml(state.landlord.signatureName || state.landlord.fullName || "—")}
+            </span>
+          </div>
         </div>
         <div></div>
       </div>
@@ -614,18 +616,18 @@
       <div class="actions">
         <button class="btn primary" id="btnSaveLandlord">Enregistrer</button>
       </div>
-      <div class="note">💡 Conseil : renseigne aussi une adresse et un email pour que tes quittances soient plus complètes.</div>
     `;
 
-    $("#btnSaveLandlord").addEventListener("click", () => {
+    $("#btnSaveLandlord").addEventListener("click", async () => {
       state.landlord.fullName = $("#l_fullName").value.trim();
       state.landlord.city = $("#l_city").value.trim();
       state.landlord.email = $("#l_email").value.trim();
       state.landlord.phone = $("#l_phone").value.trim();
       state.landlord.address = $("#l_address").value.trim();
       state.landlord.signatureName = $("#l_signatureName").value.trim();
-      saveState();
-      toast("Infos bailleur enregistrées ✅");
+      await saveState();
+      toast("Bailleur enregistré ✅");
+      renderLandlord();
     });
   }
 
@@ -633,35 +635,30 @@
     $("#leftTitle").textContent = "Locataires";
     $("#leftHint").textContent = `${state.tenants.length} enregistré(s)`;
 
-    const listHtml = state.tenants.length
-      ? `<div class="list">
-          ${state.tenants.map(t => `
-            <div class="item">
-              <div class="meta">
-                <div class="name">${escapeHtml(t.fullName || "Sans nom")}</div>
-                <div class="sub">
-                  Logement : ${escapeHtml(t.propertyAddress || "—")}<br/>
-                  Loyer HC : ${euro(t.rentHc)} • Charges : ${euro(t.charges)}
-                </div>
-              </div>
-              <div class="right">
-                <button class="btn" data-edit="${t.id}">Modifier</button>
-                <button class="btn danger" data-del="${t.id}">Supprimer</button>
-              </div>
+    const listHtml = state.tenants.length ? `
+      <div class="list">
+        ${state.tenants.map(t => `
+          <div class="item">
+            <div class="meta">
+              <div class="name">${escapeHtml(t.fullName || "Sans nom")}</div>
+              <div class="sub">Logements : ${t.properties?.length || 0}<br/>Paiement : ${escapeHtml(t.paymentMethod || "—")}</div>
             </div>
-          `).join("")}
-        </div>`
-      : `<div class="note">Aucun locataire. Ajoute le premier ci-dessous.</div>`;
+            <div class="right">
+              <button class="btn" data-edit="${t.id}">Modifier</button>
+              <button class="btn danger" data-del="${t.id}">Supprimer</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    ` : `<div class="note">Aucun locataire. Ajoute le premier ci-dessous.</div>`;
 
     $("#leftBody").innerHTML = `
       ${listHtml}
-
       <div style="height:14px"></div>
-
       <div class="card" style="border-radius:18px">
         <div class="head" style="border-bottom:1px solid var(--border)">
           <h2 id="tenantFormTitle">Ajouter un locataire</h2>
-          <div class="hint" id="tenantFormHint">loyer HC + charges</div>
+          <div class="hint" id="tenantFormHint">plusieurs logements</div>
         </div>
         <div class="body" id="tenantForm"></div>
       </div>
@@ -669,7 +666,6 @@
 
     renderTenantForm(null);
 
-    // bind list actions
     document.querySelectorAll("[data-edit]").forEach(btn => {
       btn.addEventListener("click", () => {
         const id = btn.getAttribute("data-edit");
@@ -680,12 +676,12 @@
       });
     });
     document.querySelectorAll("[data-del]").forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-del");
         const t = state.tenants.find(x => x.id === id);
         if(!confirm(`Supprimer ${t?.fullName || "ce locataire"} ?`)) return;
         state.tenants = state.tenants.filter(x => x.id !== id);
-        saveState();
+        await saveState();
         toast("Locataire supprimé 🗑️");
         renderTenants();
       });
@@ -694,28 +690,21 @@
 
   function renderTenantForm(tenant){
     const isEdit = !!tenant;
-    const t = tenant || {
-      id: uid(),
-      fullName: "",
-      tenantAddress: "",
-      propertyAddress: "",
-      rentHc: 0,
-      charges: 0,
-      paymentMethod: "Virement"
+    const t = tenant ? structuredClone(tenant) : {
+      id: uid(), fullName:"", tenantAddress:"", paymentMethod:"Virement",
+      properties: [{ id: uid(), label:"Logement 1", address:"", rentHc:0, charges:0 }]
     };
 
     $("#tenantForm").innerHTML = `
       <div class="row">
         <div>
           <label>Nom du locataire</label>
-          <input id="t_fullName" placeholder="Ex : Marie Martin" value="${escapeHtml(t.fullName)}"/>
+          <input id="t_fullName" value="${escapeHtml(t.fullName)}" placeholder="Ex : Marie Martin">
         </div>
         <div>
-          <label>Moyen de paiement (affiché sur la quittance)</label>
+          <label>Moyen de paiement</label>
           <select id="t_paymentMethod">
-            ${["Virement","Chèque","Espèces","Prélèvement","Autre"].map(v => `
-              <option ${t.paymentMethod===v ? "selected":""} value="${v}">${v}</option>
-            `).join("")}
+            ${["Virement","Chèque","Espèces","Prélèvement","Autre"].map(v => `<option value="${v}" ${t.paymentMethod===v?"selected":""}>${v}</option>`).join("")}
           </select>
         </div>
       </div>
@@ -723,47 +712,103 @@
       <div class="row">
         <div>
           <label>Adresse du locataire (optionnel)</label>
-          <textarea id="t_tenantAddress" placeholder="Adresse complète">${escapeHtml(t.tenantAddress || "")}</textarea>
+          <textarea id="t_tenantAddress" placeholder="Adresse complète">${escapeHtml(t.tenantAddress)}</textarea>
         </div>
         <div>
-          <label>Adresse du logement loué</label>
-          <textarea id="t_propertyAddress" placeholder="Adresse complète du logement">${escapeHtml(t.propertyAddress || "")}</textarea>
-        </div>
-      </div>
-
-      <div class="row">
-        <div>
-          <label>Loyer mensuel hors charges (€)</label>
-          <input id="t_rentHc" type="number" step="0.01" min="0" value="${Number(t.rentHc||0)}"/>
-        </div>
-        <div>
-          <label>Charges mensuelles (€)</label>
-          <input id="t_charges" type="number" step="0.01" min="0" value="${Number(t.charges||0)}"/>
+          <label>Logements</label>
+          <div id="propsList"></div>
+          <div class="actions" style="margin-top:8px">
+            <button class="btn" id="btnAddProp">+ Ajouter un logement</button>
+          </div>
+          <div class="mini">Les montants du logement sont les valeurs par défaut (modifiables au moment de générer la quittance).</div>
         </div>
       </div>
 
       <div class="actions">
-        <button class="btn primary" id="btnSaveTenant">${isEdit ? "Enregistrer les modifications" : "Ajouter le locataire"}</button>
+        <button class="btn primary" id="btnSaveTenant">${isEdit ? "Enregistrer" : "Ajouter"}</button>
         ${isEdit ? `<button class="btn" id="btnCancelEdit">Annuler</button>` : ""}
       </div>
     `;
 
-    $("#btnSaveTenant").addEventListener("click", () => {
+    function renderProps(){
+      const box = $("#propsList");
+      box.innerHTML = t.properties.map(p => `
+        <div class="item" style="margin-bottom:10px">
+          <div class="meta" style="width:100%">
+            <div class="row" style="margin:0">
+              <div>
+                <label>Libellé</label>
+                <input data-p="${p.id}" data-k="label" value="${escapeHtml(p.label)}" placeholder="Ex : Studio Rue X">
+              </div>
+              <div>
+                <label>Loyer HC (€)</label>
+                <input data-p="${p.id}" data-k="rentHc" type="number" step="0.01" min="0" value="${Number(p.rentHc||0)}">
+              </div>
+            </div>
+            <div class="row" style="margin-top:10px">
+              <div>
+                <label>Adresse du logement</label>
+                <textarea data-p="${p.id}" data-k="address" placeholder="Adresse complète">${escapeHtml(p.address||"")}</textarea>
+              </div>
+              <div>
+                <label>Charges (€)</label>
+                <input data-p="${p.id}" data-k="charges" type="number" step="0.01" value="${Number(p.charges||0)}">
+                <div class="mini" style="margin-top:8px">Total défaut : <span style="font-family:var(--mono);color:rgba(234,240,255,.92)">${escapeHtml(euro(Number(p.rentHc||0)+Number(p.charges||0)))}</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="right">
+            <button class="btn danger" data-delprop="${p.id}" ${t.properties.length<=1 ? "disabled":""}>Supprimer</button>
+          </div>
+        </div>
+      `).join("");
+
+      box.querySelectorAll("[data-p][data-k]").forEach(el => {
+        el.addEventListener("input", () => {
+          const pid = el.getAttribute("data-p");
+          const k = el.getAttribute("data-k");
+          const prop = t.properties.find(x => x.id === pid);
+          if(!prop) return;
+          if(k === "rentHc" || k === "charges") prop[k] = Number(el.value || 0);
+          else prop[k] = el.value;
+        });
+      });
+
+      box.querySelectorAll("[data-delprop]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const pid = btn.getAttribute("data-delprop");
+          if(t.properties.length <= 1) return;
+          t.properties = t.properties.filter(x => x.id !== pid);
+          renderProps();
+        });
+      });
+    }
+
+    renderProps();
+
+    $("#btnAddProp").addEventListener("click", () => {
+      t.properties.push({ id: uid(), label:`Logement ${t.properties.length+1}`, address:"", rentHc:0, charges:0 });
+      renderProps();
+    });
+
+    $("#btnSaveTenant").addEventListener("click", async () => {
       t.fullName = $("#t_fullName").value.trim();
       t.paymentMethod = $("#t_paymentMethod").value;
       t.tenantAddress = $("#t_tenantAddress").value.trim();
-      t.propertyAddress = $("#t_propertyAddress").value.trim();
-      t.rentHc = Number($("#t_rentHc").value || 0);
-      t.charges = Number($("#t_charges").value || 0);
 
-      if(!t.fullName){
-        alert("Le nom du locataire est obligatoire.");
+      if(!t.fullName){ alert("Nom du locataire obligatoire."); return; }
+      if(!t.properties.length || t.properties.some(p => !String(p.address||"").trim())){
+        alert("Chaque logement doit avoir une adresse.");
         return;
       }
-      if(!t.propertyAddress){
-        alert("L’adresse du logement est obligatoire.");
-        return;
-      }
+
+      t.properties = t.properties.map(p => ({
+        ...p,
+        label: String(p.label||"Logement").trim() || "Logement",
+        address: String(p.address||"").trim(),
+        rentHc: Number(p.rentHc||0),
+        charges: Number(p.charges||0),
+      }));
 
       if(isEdit){
         const idx = state.tenants.findIndex(x => x.id === t.id);
@@ -772,7 +817,7 @@
         state.tenants.unshift(t);
       }
 
-      saveState();
+      await saveState();
       toast(isEdit ? "Locataire mis à jour ✅" : "Locataire ajouté ✅");
       renderTenants();
     });
@@ -784,9 +829,8 @@
 
   function renderReceipts(){
     $("#leftTitle").textContent = "Générer une quittance PDF";
-    $("#leftHint").textContent = "A4 • design épuré • export immédiat";
+    $("#leftHint").textContent = "Montants modifiables + lignes (régularisation / remise)";
 
-    const options = state.tenants.map(t => `<option value="${t.id}">${escapeHtml(t.fullName)}</option>`).join("");
     const today = new Date();
     const y = today.getFullYear();
     const m = today.getMonth();
@@ -796,121 +840,244 @@
         <div>
           <label>Locataire</label>
           <select id="r_tenantId">
-            ${state.tenants.length ? options : `<option value="">Aucun locataire</option>`}
+            ${state.tenants.length ? state.tenants.map(t => `<option value="${t.id}">${escapeHtml(t.fullName)}</option>`).join("") : `<option value="">Aucun locataire</option>`}
           </select>
         </div>
         <div>
-          <label>Période (mois / année)</label>
-          <div class="row" style="margin:0; grid-template-columns:1fr 1fr; gap:10px">
-            <select id="r_month">
-              ${Array.from({length:12}).map((_,i) => {
-                const d = new Date(2026, i, 1);
-                const label = d.toLocaleDateString("fr-FR", { month:"long" });
-                return `<option ${i===m ? "selected":""} value="${i}">${label}</option>`;
-              }).join("")}
-            </select>
-            <input id="r_year" type="number" min="2000" max="2100" value="${y}" />
-          </div>
+          <label>Logement</label>
+          <select id="r_propertyId"></select>
         </div>
       </div>
 
       <div class="row">
         <div>
-          <label>Date d’édition (affichée sur la quittance)</label>
-          <input id="r_date" type="date" value="${toISODate(today)}" />
+          <label>Période (mois / année)</label>
+          <div class="row" style="margin:0; grid-template-columns:1fr 1fr; gap:10px">
+            <select id="r_month">
+              ${Array.from({length:12}).map((_,i) => `<option value="${i}" ${i===m?"selected":""}>${new Date(2026,i,1).toLocaleDateString("fr-FR",{month:"long"})}</option>`).join("")}
+            </select>
+            <input id="r_year" type="number" min="2000" max="2100" value="${y}">
+          </div>
         </div>
         <div>
-          <label>Référence (optionnel)</label>
-          <input id="r_ref" placeholder="Ex : Q-${y}-${String(m+1).padStart(2,"0")}-001" />
+          <label>Date d’édition</label>
+          <input id="r_date" type="date" value="${toISODate(today)}">
         </div>
       </div>
 
-      <div class="actions">
+      <div class="row">
+        <div>
+          <label>Référence (optionnel)</label>
+          <input id="r_ref" placeholder="Ex : Q-${y}-${String(m+1).padStart(2,"0")}-001">
+        </div>
+        <div>
+          <label>Total (aperçu)</label>
+          <input id="r_totalPreview" disabled value="—" style="font-family:var(--mono)">
+        </div>
+      </div>
+
+      <div class="card" style="border-radius:18px">
+        <div class="head" style="border-bottom:1px solid var(--border)">
+          <h2>Montants</h2>
+          <div class="hint">modifiable au cas par cas</div>
+        </div>
+        <div class="body">
+          <div class="row">
+            <div>
+              <label>Loyer (hors charges) €</label>
+              <input id="r_rent" type="number" step="0.01" min="0" value="0">
+            </div>
+            <div>
+              <label>Charges €</label>
+              <input id="r_charges" type="number" step="0.01" value="0">
+            </div>
+          </div>
+
+          <div>
+            <label>Lignes supplémentaires</label>
+            <div id="adjList"></div>
+            <div class="actions" style="margin-top:8px">
+              <button class="btn" id="btnAddAdj">+ Ajouter une ligne</button>
+              <button class="btn" id="btnQuickReg">+ Régularisation charges</button>
+              <button class="btn" id="btnQuickDiscount">+ Remise</button>
+            </div>
+            <div class="mini">Montants négatifs = remise / avoir.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:12px">
         <button class="btn primary" id="btnGenerate" ${state.tenants.length ? "" : "disabled"}>Générer le PDF</button>
       </div>
 
-      <div class="note">
-        ✅ Le PDF se base sur : infos bailleur + locataire + loyer HC + charges.<br/>
-        ⚠️ Pense à générer une quittance uniquement si le loyer a été payé (c’est le principe d’une quittance).
-      </div>
+      <div class="note">Conseil : une quittance atteste un paiement (à générer après encaissement).</div>
     `;
 
-    $("#btnGenerate")?.addEventListener("click", async () => {
-      const tenantId = $("#r_tenantId").value;
-      const tenant = state.tenants.find(t => t.id === tenantId);
-      if(!tenant) return;
+    const draft = { adjustments: [] };
+    const tenantSel = $("#r_tenantId");
+    const propSel = $("#r_propertyId");
+
+    const getTenant = () => state.tenants.find(t => t.id === tenantSel.value);
+    const getProp = () => getTenant()?.properties?.find(p => p.id === propSel.value);
+
+    function setPropOptions(){
+      const t = getTenant();
+      const props = t?.properties || [];
+      propSel.innerHTML = props.map(p => `<option value="${p.id}">${escapeHtml(p.label||"Logement")}</option>`).join("");
+      propSel.value = props[0]?.id || "";
+      applyDefaults();
+    }
+    function applyDefaults(){
+      const p = getProp();
+      $("#r_rent").value = String(Number(p?.rentHc || 0));
+      $("#r_charges").value = String(Number(p?.charges || 0));
+      computeTotal();
+    }
+
+    function renderAdjs(){
+      const box = $("#adjList");
+      if(!draft.adjustments.length){
+        box.innerHTML = `<div class="mini">Aucune ligne supplémentaire.</div>`;
+        return;
+      }
+      box.innerHTML = draft.adjustments.map((a,i)=>`
+        <div class="item">
+          <div class="meta" style="width:100%">
+            <div class="row" style="margin:0; grid-template-columns: 1.4fr .6fr;">
+              <div>
+                <label>Libellé</label>
+                <input data-ai="${i}" data-k="label" value="${escapeHtml(a.label)}" placeholder="Ex : Régularisation charges">
+              </div>
+              <div>
+                <label>Montant €</label>
+                <input data-ai="${i}" data-k="amount" type="number" step="0.01" value="${Number(a.amount||0)}">
+              </div>
+            </div>
+          </div>
+          <div class="right"><button class="btn danger" data-delai="${i}">Supprimer</button></div>
+        </div>
+      `).join("");
+
+      box.querySelectorAll("[data-ai][data-k]").forEach(el=>{
+        el.addEventListener("input", ()=>{
+          const i = Number(el.getAttribute("data-ai"));
+          const k = el.getAttribute("data-k");
+          if(!draft.adjustments[i]) return;
+          if(k === "amount") draft.adjustments[i].amount = Number(el.value||0);
+          else draft.adjustments[i].label = el.value;
+          computeTotal();
+        });
+      });
+      box.querySelectorAll("[data-delai]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const i = Number(btn.getAttribute("data-delai"));
+          draft.adjustments.splice(i,1);
+          renderAdjs();
+          computeTotal();
+        });
+      });
+    }
+
+    function computeTotal(){
+      const rent = Number($("#r_rent").value||0);
+      const charges = Number($("#r_charges").value||0);
+      const extra = draft.adjustments.reduce((s,a)=>s+Number(a.amount||0),0);
+      const total = rent + charges + extra;
+      $("#r_totalPreview").value = euro(total);
+      return { rent, charges, total };
+    }
+
+    if(state.tenants.length){
+      tenantSel.value = state.tenants[0].id;
+      setPropOptions();
+    }
+    renderAdjs(); computeTotal();
+
+    tenantSel.addEventListener("change", setPropOptions);
+    propSel.addEventListener("change", applyDefaults);
+    $("#r_rent").addEventListener("input", computeTotal);
+    $("#r_charges").addEventListener("input", computeTotal);
+
+    $("#btnAddAdj").addEventListener("click", ()=>{ draft.adjustments.push({label:"Autre", amount:0}); renderAdjs(); computeTotal(); });
+    $("#btnQuickReg").addEventListener("click", ()=>{ draft.adjustments.push({label:"Régularisation de charges", amount:0}); renderAdjs(); computeTotal(); });
+    $("#btnQuickDiscount").addEventListener("click", ()=>{ draft.adjustments.push({label:"Remise exceptionnelle", amount:-0}); renderAdjs(); computeTotal(); });
+
+    $("#btnGenerate")?.addEventListener("click", async ()=>{
+      const tenant = getTenant();
+      const prop = getProp();
+      if(!tenant || !prop) return;
+
+      // Ensure font loaded for signature
+      if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch{} }
 
       const monthIndex = Number($("#r_month").value);
       const year = Number($("#r_year").value);
       const dateStr = $("#r_date").value;
+      const periodLabel = cap(monthLabel(year, monthIndex));
       const ref = ($("#r_ref").value || "").trim() || `Q-${year}-${String(monthIndex+1).padStart(2,"0")}-${tenant.fullName.replaceAll(" ","_")}`;
 
-      const periodLabel = capitalize(monthLabel(year, monthIndex));
-      const rent = Number(tenant.rentHc || 0);
-      const charges = Number(tenant.charges || 0);
-      const total = rent + charges;
+      const rent = Number($("#r_rent").value||0);
+      const charges = Number($("#r_charges").value||0);
+      const lines = [
+        { label:"Loyer (hors charges)", amount: rent },
+        { label:"Charges", amount: charges },
+        ...draft.adjustments.filter(a => String(a.label||"").trim() && Number(a.amount||0) !== 0)
+      ];
+      const total = lines.reduce((s,l)=>s+Number(l.amount||0),0);
 
-      // Fill template
+      // Fill PDF
       $("#pdfPeriod").textContent = `Période : ${periodLabel}`;
       $("#pdfRef").textContent = ref;
 
-      const landlord = state.landlord;
-      const landlordLines = [
-        landlord.fullName || "—",
-        landlord.address || "",
-        landlord.email ? `Email : ${landlord.email}` : "",
-        landlord.phone ? `Tél : ${landlord.phone}` : ""
-      ].filter(Boolean).join("\n");
+      const L = state.landlord;
+      $("#pdfLandlordLines").textContent = [L.fullName||"—", L.address||"", L.email?`Email : ${L.email}`:"", L.phone?`Tél : ${L.phone}`:""].filter(Boolean).join("\n") || "—";
+      $("#pdfTenantLines").textContent = [tenant.fullName||"—", tenant.tenantAddress||""].filter(Boolean).join("\n") || "—";
+      $("#pdfProperty").textContent = prop.address || "—";
+      $("#pdfPropertyLabel").textContent = prop.label ? `(${prop.label})` : "";
 
-      const tenantLines = [
-        tenant.fullName || "—",
-        tenant.tenantAddress || "",
-      ].filter(Boolean).join("\n");
+      $("#pdfLines").innerHTML = lines.map(l=>`
+        <tr><td>${escapeHtml(l.label)}</td><td>${escapeHtml(euro(l.amount))}</td></tr>
+      `).join("");
 
-      $("#pdfLandlordLines").textContent = landlordLines || "—";
-      $("#pdfTenantLines").textContent = tenantLines || "—";
-      $("#pdfProperty").textContent = tenant.propertyAddress || "—";
-
-      $("#pdfRent").textContent = euro(rent);
-      $("#pdfCharges").textContent = euro(charges);
       $("#pdfTotal").textContent = euro(total);
       $("#pdfTotalLine").textContent = `Total : ${euro(total)}`;
 
-      const city = landlord.city || "—";
+      const city = L.city || "—";
       const editedDate = dateStr ? formatFRDate(dateStr) : "—";
-      $("#pdfFooterLeft").innerHTML = `
-        Fait à ${escapeHtml(city)}, le ${escapeHtml(editedDate)}<br/>
-        Paiement : ${escapeHtml(tenant.paymentMethod || "—")}<br/>
-        <span style="color:#64748b">Document généré automatiquement.</span>
-      `;
+      $("#pdfFooterLeft").innerHTML = `Fait à ${escapeHtml(city)}, le ${escapeHtml(editedDate)}<br/>Paiement : ${escapeHtml(tenant.paymentMethod||"—")}<br/><span style="color:#64748b">Document généré automatiquement.</span>`;
 
-      $("#pdfSignName").textContent = landlord.signatureName || landlord.fullName || "—";
+      $("#pdfSignText").textContent = L.signatureName || L.fullName || "—";
 
-      // Generate PDF
-      const node = $("#pdfTemplate").firstElementChild; // pdf-root
-      const filename = `Quittance_${tenant.fullName}_${periodLabel.replace(" ","_")}.pdf`.replaceAll("/", "-");
+      const node = $("#pdfTemplate").firstElementChild;
+      const filename = `Quittance_${tenant.fullName}_${periodLabel.replace(" ","_")}.pdf`.replaceAll("/","-");
 
       const opt = {
-        margin:       [6, 6, 6, 6], // mm-ish via html2pdf
+        margin: [6,6,6,6],
         filename,
-        image:        { type: "jpeg", quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
+        image: { type:"jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit:"mm", format:"a4", orientation:"portrait" }
       };
 
       try{
-        await html2pdf().set(opt).from(node).save();
+        await window.html2pdf().set(opt).from(node).save();
         toast("PDF généré ✅");
       }catch(e){
         console.error(e);
-        alert("Impossible de générer le PDF. Regarde la console pour plus de détails.");
+        alert("Impossible de générer le PDF (voir console).");
       }
     });
   }
 
-  // -------------------------
+  function render(tab){
+    if(tab === "bailleur") return renderLandlord();
+    if(tab === "locataires") return renderTenants();
+    if(tab === "quittances") return renderReceipts();
+  }
+
+  // --------------------
   // Export / Import / Reset
-  // -------------------------
+  // --------------------
   $("#btnExport").addEventListener("click", () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type:"application/json" });
     const url = URL.createObjectURL(blob);
@@ -923,77 +1090,39 @@
   });
 
   $("#btnImport").addEventListener("click", () => $("#fileImport").click());
-
   $("#fileImport").addEventListener("change", async (e) => {
     const file = e.target.files?.[0];
     if(!file) return;
     try{
       const text = await file.text();
-      const data = JSON.parse(text);
-      state = {
-        landlord: { ...defaultState.landlord, ...(data.landlord || {}) },
-        tenants: Array.isArray(data.tenants) ? data.tenants : []
-      };
-      saveState();
+      state = normalizeState(JSON.parse(text));
+      await saveState();
+      rerender();
       toast("Import réussi ✅");
-      // rerender current tab
-      const current = document.querySelector(".pill[aria-selected='true']")?.dataset.tab || "bailleur";
-      render(current);
-    }catch(err){
+    }catch{
       alert("Fichier invalide.");
     }finally{
       e.target.value = "";
     }
   });
 
-  $("#btnReset").addEventListener("click", () => {
-    if(!confirm("Tout effacer ? (bailleur + locataires)")) return;
+  $("#btnReset").addEventListener("click", async () => {
+    if(!confirm("Tout effacer ?")) return;
     state = structuredClone(defaultState);
-    saveState();
-    toast("Données effacées ✅");
+    await saveState();
     setTab("bailleur");
+    toast("Réinitialisé ✅");
   });
 
-  // -------------------------
-  // Tabs interactions
-  // -------------------------
-  document.querySelectorAll(".pill[role='tab']").forEach(p => {
-    p.addEventListener("click", () => setTab(p.dataset.tab));
-    p.addEventListener("keydown", (e) => {
-      if(e.key === "Enter" || e.key === " ") setTab(p.dataset.tab);
-    });
+  // Tabs events
+  document.querySelectorAll(".tab").forEach(t => {
+    t.addEventListener("click", () => setTab(t.dataset.tab));
+    t.addEventListener("keydown", (e) => { if(e.key==="Enter"||e.key===" ") setTab(t.dataset.tab); });
   });
 
-  // Initial render
+  // Start
   render("bailleur");
-
-  // -------------------------
-  // Small utilities
-  // -------------------------
-  function toISODate(d){
-    const pad = (n) => String(n).padStart(2,"0");
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  }
-
-  function formatFRDate(iso){
-    // iso: YYYY-MM-DD
-    const [y,m,d] = iso.split("-").map(Number);
-    const dt = new Date(y, (m||1)-1, d||1);
-    return dt.toLocaleDateString("fr-FR", { day:"2-digit", month:"long", year:"numeric" });
-  }
-
-  function capitalize(s){
-    return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-  }
-
-  function escapeHtml(str){
-    return String(str ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
+  initFirebase();
 </script>
 </body>
 </html>

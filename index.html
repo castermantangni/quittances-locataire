@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8 -->  <meta charset="utf-8" />
+  <script src="https://cdn.jsdelivr2pdf.js@0.10.1/dist/html2pdf.bundle.min.js</script>
+
+  <!-- (Optionnel) Config Firebase --> 
+  <!-- Copie assets/js/config.example.js -> assets/js/config.js puis dé-commente la ligne suivante -->
+  <script src="assets/jscript>
+
+  <!-- App -->
+  assets/js/app.js</script>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Quittances</h1>
+        <p class="sub">Plusieurs logements • montants au cas par cas • signature auto • synchro Firebase (optionnel).</p>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Sections">
+        <div class="tab" role="tab" tabindex="0" aria-selected="true" data-tab="bailleur">Bailleur</div>
+        <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="locataires">Locataires</div>
+        <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="quittances">Quittances PDF</div>
+        <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="historique">📚 Historique</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="head">
+          <h2 id="leftTitle">—</h2>
+          <div class="hint" id="leftHint">—</div>
+        </div>
+        <div class="body" id="leftBody"></div>
+      </section>
+
+      <aside class="card">
+        <div class="head">
+          <h2>Outils</h2>
+          <div class="hint">cloud • export</div>
+        </div>
+        <div class="body">
+          <div>
+            <div id="cloudStatus" class="badge warn">Cloud : non configuré</div>
+
+            <div id="authBox" class="hidden" style="margin-top:12px">
+              <div class="row">
+                <div>
+                  <label>Email</label>
+                  <input id="auth_email" type="email" placeholder="ex: toi@email.com">
+                </div>
+                <div>
+                  <label>Mot de passe</label>
+                  <input id="auth_pass" type="password" placeholder="••••••••">
+                </div>
+              </div>
+              <div class="actions">
+                <button class="btn primary" id="btnLogin">Connexion</button>
+                <button class="btn" id="btnRegister">Créer un compte</button>
+                <button class="btn danger hidden" id="btnLogout">Déconnexion</button>
+              </div>
+              <div class="note" id="authMsg"></div>
+            </div>
+
+            <div class="note" id="cloudNote" style="margin-top:10px">
+              Pour activer la synchronisation : colle ta config Firebase dans <span class="text-mono">window.FIREBASE_CONFIG</span> (fichier
+              <span class="text-mono">assets/js/config.js</span>).
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div>
+            <button class="btn" id="btnExport">Exporter (.json)</button>
+            <input type="file" id="fileImport" accept="application/json" class="hidden" />
+            <button class="btn" id="btnImport">Importer (.json)</button>
+            <div class="note">Pratique pour sauvegarder ou migrer vers un autre navigateur.</div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div>
+            <button class="btn danger" id="btnReset">Réinitialiser</button>
+            <div class="toast" id="toast"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- PDF template (caché) -->
+    <div id="pdfTemplate" class="hidden">
+      <div class="pdf-root">
+        <div class="pdf-top">
+          <div>
+            <div class="pdf-badge">QUITTANCE • LOYER</div>
+            <h2 class="pdf-title">Quittance de loyer</h2>
+            <p class="pdf-period" id="pdfPeriod">Période : —</p>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:#334155">Référence</div>
+            <div style="font-family:var(--mono);font-size:12px;color:#0b1220" id="pdfRef">—</div>
+          </div>
+        </div>
+
+        <div class="pdf-boxes">
+          <div class="pdf-box">
+            <h3>Bailleur</h3>
+            <div class="pdf-line" id="pdfLandlordLines">—</div>
+          </div>
+          <div class="pdf-box">
+            <h3>Locataire</h3>
+            <div class="pdf-line" id="pdfTenantLines">—</div>
+          </div>
+        </div>
+
+        <div class="pdf-prop">
+          <h3>Logement</h3>
+          <div class="pdf-line" id="pdfProperty">—</div>
+          <div class="pdf-muted" id="pdfPropertyLabel"></div>
+        </div>
+
+        <table class="pdf-table">
+          <thead><tr><th>Détail</th><th>Montant</th></tr></thead>
+          <tbody id="pdfLines"></tbody>
+          <tfoot><tr><td style="font-weight:800">Total payé</td><td style="font-weight:900" id="pdfTotal">—</td></tr></tfoot>
+        </table>
+
+        <div class="pdf-total">
+          <p class="big" id="pdfTotalLine">Total : —</p>
+          <p class="small">
+            Le bailleur reconnaît avoir reçu la somme indiquée ci-dessus au titre du paiement
+            du loyer et des charges pour la période mentionnée. Cette quittance atteste du paiement intégral des sommes dues.
+          </p>
+        </div>
+
+        <div class="pdf-footer">
+          <div class="left" id="pdfFooterLeft">Fait à —, le —<br/>Paiement : —<br/><span style="color:#64748b">Document généré automatiquement.</span></div>
+          <div class="pdf-sign">
+            <p class="signatureText" id="pdfSignText">—</p>
+            <div class="sigbox">Signature du bailleur</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quittances — Locataires & PDF</title>
+
+  <!-- Signature font -->
+  https://fonts.googleapis.com
+  https://fonts.gstatic.com
+  https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap
+
+  <!-- Styles -->
+  assets/css/styles.css
+

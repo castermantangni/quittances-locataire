@@ -1,0 +1,1861 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quittances — Locataires & PDF</title>
+
+  <!-- PDF generator (HTML -> PDF) -->
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
+  <!-- Signature font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+  /* Couleurs principales */
+  --bg: #0a0e1a;
+  --bg-gradient: linear-gradient(135deg, #0a0e1a 0%, #151b2e 100%);
+  
+  /* Surfaces */
+  --panel: rgba(255, 255, 255, 0.05);
+  --panel-hover: rgba(255, 255, 255, 0.08);
+  --panel-active: rgba(255, 255, 255, 0.12);
+  
+  /* Bordures */
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  
+  /* Texte */
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  
+  /* Couleurs d'accent */
+  --accent: #6366f1;
+  --accent-light: #818cf8;
+  --accent-dark: #4f46e5;
+  
+  /* États */
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.1);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.1);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --info: #3b82f6;
+  --info-bg: rgba(59, 130, 246, 0.1);
+  
+  /* Ombres */
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+  
+  /* Rayons */
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  
+  /* Fonts */
+  --mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  
+  /* Transition */
+  --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--text);
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  padding: 24px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+
+/* ========================================
+   TYPOGRAPHIE
+   ======================================== */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--text) 0%, var(--text-muted) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 18px;
+}
+
+
+/* ========================================
+   BOUTONS MODERNISÉS
+   ======================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: all var(--transition);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  user-select: none;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--panel-hover);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Bouton primaire */
+.btn.primary {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  border-color: var(--accent);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+}
+
+.btn.primary:hover:not(:disabled) {
+  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.4);
+  border-color: var(--accent-light);
+  transform: translateY(-2px);
+}
+
+/* Bouton succès */
+.btn.success {
+  background: var(--success-bg);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.btn.success:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Bouton danger */
+.btn.danger {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.btn.danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+
+/* ========================================
+   CARTES (CARDS)
+   ======================================== */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: all var(--transition);
+}
+
+.card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+.card .head {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.card .head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.card .body {
+  padding: 24px;
+}
+
+
+/* ========================================
+   FORMULAIRES
+   ======================================== */
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  transition: all var(--transition);
+  outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+
+/* ========================================
+   BADGES
+   ======================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.badge.ok {
+  background: var(--success-bg);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.badge.warn {
+  background: var(--warning-bg);
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.badge.danger {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.badge.info {
+  background: var(--info-bg);
+  border-color: var(--info);
+  color: var(--info);
+}
+
+
+/* ========================================
+   TABS
+   ======================================== */
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: var(--panel);
+  padding: 6px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.tab {
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+}
+
+.tab:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab[aria-selected="true"] {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+
+/* ========================================
+   LISTES
+   ======================================== */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all var(--transition);
+}
+
+.item:hover {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: var(--border-strong);
+  transform: translateX(4px);
+}
+
+.item .meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.item .meta .name {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item .meta .sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.item .right {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+
+/* ========================================
+   NOTES ET MESSAGES
+   ======================================== */
+.note {
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.6;
+  background: var(--info-bg);
+  border: 1px solid var(--info);
+  color: var(--info);
+  margin-top: 16px;
+}
+
+.note strong {
+  font-weight: 600;
+}
+
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+
+/* ========================================
+   UTILITAIRES
+   ======================================== */
+.hidden {
+  display: none !important;
+}
+
+.text-mono {
+  font-family: var(--mono) !important;
+}
+
+.text-sm {
+  font-size: 13px !important;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.mt-0 {
+  margin-top: 0 !important;
+}
+
+.mb-0 {
+  margin-bottom: 0 !important;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 24px 0;
+}
+
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  body {
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .tabs {
+    flex-direction: column;
+  }
+
+  .tab {
+    width: 100%;
+    text-align: center;
+  }
+
+  .item {
+    flex-direction: column;
+  }
+
+  .item .right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .card .head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Quittances</h1>
+      <p class="sub">Plusieurs logements • montants au cas par cas • signature auto • synchro Firebase (optionnel).</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <div class="tab" role="tab" tabindex="0" aria-selected="true" data-tab="bailleur">Bailleur</div>
+      <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="locataires">Locataires</div>
+      <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="quittances">Quittances PDF</div>
+      <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="historique">📚 Historique</div> 
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <div class="head">
+        <h2 id="leftTitle">—</h2>
+        <div class="hint" id="leftHint">—</div>
+      </div>
+      <div class="body" id="leftBody"></div>
+    </section>
+
+    <aside class="card">
+      <div class="head">
+        <h2>Outils</h2>
+        <div class="hint">cloud • export</div>
+      </div>
+      <div class="body">
+        <div>
+          <div id="cloudStatus" class="badge warn">Cloud : non configuré</div>
+
+          <div id="authBox" class="hidden" style="margin-top:12px">
+            <div class="row">
+              <div>
+                <label>Email</label>
+                <input id="auth_email" type="email" placeholder="ex: toi@email.com">
+              </div>
+              <div>
+                <label>Mot de passe</label>
+                <input id="auth_pass" type="password" placeholder="••••••••">
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn primary" id="btnLogin">Connexion</button>
+              <button class="btn" id="btnRegister">Créer un compte</button>
+              <button class="btn danger hidden" id="btnLogout">Déconnexion</button>
+            </div>
+            <div class="note" id="authMsg"></div>
+          </div>
+
+          <div class="note" id="cloudNote" style="margin-top:10px">
+            Pour activer la synchronisation : colle ta config Firebase dans <span style="font-family:var(--mono)">window.FIREBASE_CONFIG</span> (en bas du fichier).
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div>
+          <button class="btn" id="btnExport">Exporter (.json)</button>
+          <input type="file" id="fileImport" accept="application/json" class="hidden" />
+          <button class="btn" id="btnImport">Importer (.json)</button>
+          <div class="note">Pratique pour sauvegarder ou migrer vers un autre navigateur.</div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div>
+          <button class="btn danger" id="btnReset">Réinitialiser</button>
+          <div class="toast" id="toast"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- PDF template -->
+  <div id="pdfTemplate" class="hidden">
+    <div class="pdf-root">
+      <div class="pdf-top">
+        <div>
+          <div class="pdf-badge">QUITTANCE • LOYER</div>
+          <h2 class="pdf-title">Quittance de loyer</h2>
+          <p class="pdf-period" id="pdfPeriod">Période : —</p>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:#334155">Référence</div>
+          <div style="font-family:var(--mono);font-size:12px;color:#0b1220" id="pdfRef">—</div>
+        </div>
+      </div>
+
+      <div class="pdf-boxes">
+        <div class="pdf-box">
+          <h3>Bailleur</h3>
+          <div class="pdf-line" id="pdfLandlordLines">—</div>
+        </div>
+        <div class="pdf-box">
+          <h3>Locataire</h3>
+          <div class="pdf-line" id="pdfTenantLines">—</div>
+        </div>
+      </div>
+
+      <div class="pdf-prop">
+        <h3>Logement</h3>
+        <div class="pdf-line" id="pdfProperty">—</div>
+        <div class="pdf-muted" id="pdfPropertyLabel"></div>
+      </div>
+
+      <table class="pdf-table">
+        <thead><tr><th>Détail</th><th>Montant</th></tr></thead>
+        <tbody id="pdfLines"></tbody>
+        <tfoot><tr><td style="font-weight:800">Total payé</td><td style="font-weight:900" id="pdfTotal">—</td></tr></tfoot>
+      </table>
+
+      <div class="pdf-total">
+        <p class="big" id="pdfTotalLine">Total : —</p>
+        <p class="small">
+          Le bailleur reconnaît avoir reçu la somme indiquée ci-dessus au titre du paiement
+          du loyer et des charges pour la période mentionnée. Cette quittance atteste du paiement intégral des sommes dues.
+        </p>
+      </div>
+
+      <div class="pdf-footer">
+        <div class="left" id="pdfFooterLeft">Fait à —, le —<br/>Paiement : —<br/><span style="color:#64748b">Document généré automatiquement.</span></div>
+        <div class="pdf-sign">
+          <p class="signatureText" id="pdfSignText">—</p>
+          <div class="sigbox">Signature du bailleur</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!--
+  ✅ FIREBASE (OPTIONNEL) — COLLE ICI LA CONFIG DE TA WEB APP
+  Firebase Console → Project settings → Your apps → Web app → “Config”
+-->
+<script>
+     window.FIREBASE_CONFIG = {
+        apiKey: "AIzaSyC5ukxwBWQgmC4k3-JOeJ0XlS_8ksXAZdk",
+        authDomain: "gestionlocative-be708.firebaseapp.com",
+        projectId: "gestionlocative-be708",
+        storageBucket: "gestionlocative-be708.firebasestorage.app",
+        messagingSenderId: "125095758052",
+        appId: "1:125095758052:web:2998efa253a1b37d6844f1",
+        measurementId: "G-7T2RL90FGB"
+     };
+</script>
+
+<script type="module">
+  // --------------------
+  // Utils
+  // --------------------
+  const $ = (sel) => document.querySelector(sel);
+  function uid(){ return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("id_" + Math.random().toString(16).slice(2) + "_" + Date.now()); }
+  function euro(n){ return Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR"}); }
+  function toast(msg){ $("#toast").textContent = msg; setTimeout(()=>{ if($("#toast").textContent===msg) $("#toast").textContent=""; }, 3500); }
+  function escapeHtml(s){ return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+  function toISODate(d){ const pad=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+  function formatFRDate(iso){ const [y,m,d]=iso.split("-").map(Number); return new Date(y,(m||1)-1,d||1).toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"}); }
+  function monthLabel(year, mi){ return new Date(year,mi,1).toLocaleDateString("fr-FR",{month:"long",year:"numeric"}); }
+  function cap(s){ return s ? s.charAt(0).toUpperCase()+s.slice(1) : s; }
+
+  // --------------------
+  // State (local + cloud)
+  // --------------------
+  const STORAGE_KEY = "quittances_state_v3";
+  const defaultState = {
+    landlord: { fullName:"", address:"", email:"", phone:"", city:"", signatureName:"" },
+    tenants: [],
+    receipts: [] 
+  };
+
+  function normalizeState(data){
+    const landlord = { ...defaultState.landlord, ...(data?.landlord || {}) };
+    const tenantsRaw = Array.isArray(data?.tenants) ? data.tenants : [];
+    const tenants = tenantsRaw.map(t => {
+      const tenant = { ...t };
+      tenant.id = tenant.id || uid();
+      tenant.fullName = tenant.fullName || "";
+      tenant.tenantAddress = tenant.tenantAddress || "";
+      tenant.paymentMethod = tenant.paymentMethod || "Virement";
+      if(!Array.isArray(tenant.properties)){
+        // migration legacy
+        tenant.properties = [{
+          id: uid(),
+          label: "Logement 1",
+          address: tenant.propertyAddress || "",
+          rentHc: Number(tenant.rentHc || 0),
+          charges: Number(tenant.charges || 0)
+        }];
+      }
+      tenant.properties = tenant.properties.map(p => ({
+        id: p.id || uid(),
+        label: p.label || "Logement",
+        address: p.address || "",
+        rentHc: Number(p.rentHc || 0),
+        charges: Number(p.charges || 0),
+      }));
+      delete tenant.propertyAddress; delete tenant.rentHc; delete tenant.charges;
+      return tenant;
+    });
+    // Normaliser les receipts
+    const receipts = Array.isArray(data?.receipts) ? data.receipts.map(r => ({
+      id: r.id || uid(),
+      tenantId: r.tenantId || "",
+      tenantName: r.tenantName || "",
+      propertyId: r.propertyId || "",
+      propertyLabel: r.propertyLabel || "",
+      propertyAddress: r.propertyAddress || "",
+      year: Number(r.year || new Date().getFullYear()),
+      month: Number(r.month || 0),
+      period: r.period || "",
+      reference: r.reference || "",
+      dateIssued: r.dateIssued || toISODate(new Date()),
+      rentHc: Number(r.rentHc || 0),
+      charges: Number(r.charges || 0),
+      adjustments: Array.isArray(r.adjustments) ? r.adjustments : [],
+      total: Number(r.total || 0),
+      paymentMethod: r.paymentMethod || "Virement",
+      createdAt: r.createdAt || Date.now()
+    })) : [];
+
+    return { landlord, tenants, receipts };  
+  }
+
+  function loadLocal(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return structuredClone(defaultState);
+      return normalizeState(JSON.parse(raw));
+    }catch{ return structuredClone(defaultState); }
+  }
+  function saveLocal(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ landlord: state.landlord, tenants: state.tenants }));
+  }
+
+  let state = loadLocal();
+
+  // --------------------
+  // Firebase (optional)
+  // --------------------
+  const FIREBASE_VERSION = "10.12.2";
+  const FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
+
+  let cloud = {
+    enabled:false, auth:null, db:null, user:null, unsub:null, applying:false
+  };
+
+  function setCloudBadge(text, ok){
+    const el = $("#cloudStatus");
+    el.textContent = text;
+    el.classList.remove("ok","warn");
+    el.classList.add(ok ? "ok" : "warn");
+  }
+  function setAuthMsg(msg){ $("#authMsg").textContent = msg || ""; }
+
+  async function initFirebase(){
+    if(!FIREBASE_CONFIG || !FIREBASE_CONFIG.apiKey || String(FIREBASE_CONFIG.apiKey).includes("...")){
+      setCloudBadge("Cloud : non configuré", false);
+      return;
+    }
+
+    const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js`);
+    const { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } =
+      await import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth.js`);
+    const { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } =
+      await import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore.js`);
+
+    const app = initializeApp(FIREBASE_CONFIG);
+    cloud.auth = getAuth(app);
+    cloud.db = getFirestore(app);
+    cloud.enabled = true;
+
+    $("#authBox").classList.remove("hidden");
+    setCloudBadge("Cloud : prêt (connecte-toi)", true);
+
+    $("#btnLogin").addEventListener("click", async () => {
+      setAuthMsg("");
+      try{
+        await signInWithEmailAndPassword(cloud.auth, $("#auth_email").value.trim(), $("#auth_pass").value);
+      }catch(e){ setAuthMsg(e?.message || "Erreur connexion"); }
+    });
+    $("#btnRegister").addEventListener("click", async () => {
+      setAuthMsg("");
+      try{
+        await createUserWithEmailAndPassword(cloud.auth, $("#auth_email").value.trim(), $("#auth_pass").value);
+      }catch(e){ setAuthMsg(e?.message || "Erreur inscription"); }
+    });
+    $("#btnLogout").addEventListener("click", async () => {
+      setAuthMsg("");
+      try{ await signOut(cloud.auth); }catch(e){ setAuthMsg("Erreur déconnexion"); }
+    });
+
+    async function cloudWrite(){
+      const ref = doc(cloud.db, "users", cloud.user.uid, "app", "state");
+      await setDoc(ref, { landlord: state.landlord, tenants: state.tenants, receipts: state.receipts, updatedAt: serverTimestamp() }, { merge:true });
+    }
+
+    onAuthStateChanged(cloud.auth, async (user) => {
+      cloud.user = user || null;
+
+      if(cloud.unsub){ cloud.unsub(); cloud.unsub = null; }
+
+      if(!cloud.user){
+        $("#btnLogout").classList.add("hidden");
+        setCloudBadge("Cloud : prêt (déconnecté)", true);
+        setAuthMsg("Déconnecté. Les modifications restent locales.");
+        return;
+      }
+
+      $("#btnLogout").classList.remove("hidden");
+      setCloudBadge(`Cloud : connecté (${cloud.user.email || cloud.user.uid})`, true);
+      setAuthMsg("Connecté. Synchronisation active.");
+
+      const ref = doc(cloud.db, "users", cloud.user.uid, "app", "state");
+      const snap = await getDoc(ref);
+
+      if(snap.exists()){
+        cloud.applying = true;
+        state = normalizeState(snap.data());
+        cloud.applying = false;
+        saveLocal();
+        rerender();
+        toast("Données cloud chargées ✅");
+      }else{
+        await cloudWrite();
+        toast("Cloud initialisé ✅");
+      }
+
+      cloud.unsub = onSnapshot(ref, (docSnap) => {
+        if(!docSnap.exists()) return;
+        if(cloud.applying) return;
+        const incoming = normalizeState(docSnap.data());
+        if(JSON.stringify(incoming) === JSON.stringify(state)) return;
+        cloud.applying = true;
+        state = incoming;
+        cloud.applying = false;
+        saveLocal();
+        rerender();
+        toast("Mise à jour reçue du cloud 🔄");
+      });
+
+      // expose save
+      window.__cloudSave = async () => {
+        if(!cloud.enabled || !cloud.user) return false;
+        try{ await cloudWrite(); return true; }catch(e){ console.error(e); toast("Erreur cloud ⚠️"); return false; }
+      };
+    });
+  }
+
+  async function saveState(){
+    saveLocal();
+    if(typeof window.__cloudSave === "function" && !cloud.applying){
+      const ok = await window.__cloudSave();
+      if(ok) return;
+    }
+  }
+
+  // --------------------
+  // Tabs / rendering
+  // --------------------
+  function currentTab(){ return document.querySelector('.tab[aria-selected="true"]')?.dataset.tab || "bailleur"; }
+  function setTab(tab){
+    document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab === tab ? "true" : "false"));
+    render(tab);
+  }
+  function rerender(){ render(currentTab()); }
+
+  function renderLandlord(){
+    $("#leftTitle").textContent = "Informations bailleur";
+    $("#leftHint").textContent = "Signature manuscrite auto dans le PDF";
+    $("#leftBody").innerHTML = `
+      <div class="row">
+        <div>
+          <label>Nom / Prénom (ou raison sociale)</label>
+          <input id="l_fullName" value="${escapeHtml(state.landlord.fullName)}" placeholder="Ex : Jean Dupont">
+        </div>
+        <div>
+          <label>Ville (pour “Fait à …”)</label>
+          <input id="l_city" value="${escapeHtml(state.landlord.city)}" placeholder="Ex : Paris">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Email</label>
+          <input id="l_email" value="${escapeHtml(state.landlord.email)}" placeholder="ex: jean@exemple.fr">
+        </div>
+        <div>
+          <label>Téléphone</label>
+          <input id="l_phone" value="${escapeHtml(state.landlord.phone)}" placeholder="ex: 06...">
+        </div>
+      </div>
+
+      <div>
+        <label>Adresse bailleur</label>
+        <textarea id="l_address" placeholder="Adresse complète">${escapeHtml(state.landlord.address)}</textarea>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <div>
+          <label>Nom affiché pour la signature (optionnel)</label>
+          <input id="l_signatureName" value="${escapeHtml(state.landlord.signatureName)}" placeholder="Par défaut : Nom / Prénom">
+          <div class="mini" style="margin-top:6px">
+            Aperçu signature :
+            <span style="font-family:'Great Vibes','Brush Script MT',cursive;font-size:28px;color:rgba(234,240,255,.95)">
+              ${escapeHtml(state.landlord.signatureName || state.landlord.fullName || "—")}
+            </span>
+          </div>
+        </div>
+        <div></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="btnSaveLandlord">Enregistrer</button>
+      </div>
+    `;
+
+    $("#btnSaveLandlord").addEventListener("click", async () => {
+      state.landlord.fullName = $("#l_fullName").value.trim();
+      state.landlord.city = $("#l_city").value.trim();
+      state.landlord.email = $("#l_email").value.trim();
+      state.landlord.phone = $("#l_phone").value.trim();
+      state.landlord.address = $("#l_address").value.trim();
+      state.landlord.signatureName = $("#l_signatureName").value.trim();
+      await saveState();
+      toast("Bailleur enregistré ✅");
+      renderLandlord();
+    });
+  }
+
+  function renderTenants(){
+    $("#leftTitle").textContent = "Locataires";
+    $("#leftHint").textContent = `${state.tenants.length} enregistré(s)`;
+
+    const listHtml = state.tenants.length ? `
+      <div class="list">
+        ${state.tenants.map(t => `
+          <div class="item">
+            <div class="meta">
+              <div class="name">${escapeHtml(t.fullName || "Sans nom")}</div>
+              <div class="sub">Logements : ${t.properties?.length || 0}<br/>Paiement : ${escapeHtml(t.paymentMethod || "—")}</div>
+            </div>
+            <div class="right">
+              <button class="btn" data-edit="${t.id}">Modifier</button>
+              <button class="btn danger" data-del="${t.id}">Supprimer</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    ` : `<div class="note">Aucun locataire. Ajoute le premier ci-dessous.</div>`;
+
+    $("#leftBody").innerHTML = `
+      ${listHtml}
+      <div style="height:14px"></div>
+      <div class="card" style="border-radius:18px">
+        <div class="head" style="border-bottom:1px solid var(--border)">
+          <h2 id="tenantFormTitle">Ajouter un locataire</h2>
+          <div class="hint" id="tenantFormHint">plusieurs logements</div>
+        </div>
+        <div class="body" id="tenantForm"></div>
+      </div>
+    `;
+
+    renderTenantForm(null);
+
+    document.querySelectorAll("[data-edit]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-edit");
+        const t = state.tenants.find(x => x.id === id);
+        renderTenantForm(t || null);
+        $("#tenantFormTitle").textContent = "Modifier le locataire";
+        $("#tenantFormHint").textContent = id;
+      });
+    });
+    document.querySelectorAll("[data-del]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-del");
+        const t = state.tenants.find(x => x.id === id);
+        if(!confirm(`Supprimer ${t?.fullName || "ce locataire"} ?`)) return;
+        state.tenants = state.tenants.filter(x => x.id !== id);
+        await saveState();
+        toast("Locataire supprimé 🗑️");
+        renderTenants();
+      });
+    });
+  }
+
+  function renderTenantForm(tenant){
+    const isEdit = !!tenant;
+    const t = tenant ? structuredClone(tenant) : {
+      id: uid(), fullName:"", tenantAddress:"", paymentMethod:"Virement",
+      properties: [{ id: uid(), label:"Logement 1", address:"", rentHc:0, charges:0 }]
+    };
+
+    $("#tenantForm").innerHTML = `
+      <div class="row">
+        <div>
+          <label>Nom du locataire</label>
+          <input id="t_fullName" value="${escapeHtml(t.fullName)}" placeholder="Ex : Marie Martin">
+        </div>
+        <div>
+          <label>Moyen de paiement</label>
+          <select id="t_paymentMethod">
+            ${["Virement","Chèque","Espèces","Prélèvement","Autre"].map(v => `<option value="${v}" ${t.paymentMethod===v?"selected":""}>${v}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Adresse du locataire (optionnel)</label>
+          <textarea id="t_tenantAddress" placeholder="Adresse complète">${escapeHtml(t.tenantAddress)}</textarea>
+        </div>
+        <div>
+          <label>Logements</label>
+          <div id="propsList"></div>
+          <div class="actions" style="margin-top:8px">
+            <button class="btn" id="btnAddProp">+ Ajouter un logement</button>
+          </div>
+          <div class="mini">Les montants du logement sont les valeurs par défaut (modifiables au moment de générer la quittance).</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="btnSaveTenant">${isEdit ? "Enregistrer" : "Ajouter"}</button>
+        ${isEdit ? `<button class="btn" id="btnCancelEdit">Annuler</button>` : ""}
+      </div>
+    `;
+
+    function renderProps(){
+      const box = $("#propsList");
+      box.innerHTML = t.properties.map(p => `
+        <div class="item" style="margin-bottom:10px">
+          <div class="meta" style="width:100%">
+            <div class="row" style="margin:0">
+              <div>
+                <label>Libellé</label>
+                <input data-p="${p.id}" data-k="label" value="${escapeHtml(p.label)}" placeholder="Ex : Studio Rue X">
+              </div>
+              <div>
+                <label>Loyer HC (€)</label>
+                <input data-p="${p.id}" data-k="rentHc" type="number" step="0.01" min="0" value="${Number(p.rentHc||0)}">
+              </div>
+            </div>
+            <div class="row" style="margin-top:10px">
+              <div>
+                <label>Adresse du logement</label>
+                <textarea data-p="${p.id}" data-k="address" placeholder="Adresse complète">${escapeHtml(p.address||"")}</textarea>
+              </div>
+              <div>
+                <label>Charges (€)</label>
+                <input data-p="${p.id}" data-k="charges" type="number" step="0.01" value="${Number(p.charges||0)}">
+                <div class="mini" style="margin-top:8px">Total défaut : <span style="font-family:var(--mono);color:rgba(234,240,255,.92)">${escapeHtml(euro(Number(p.rentHc||0)+Number(p.charges||0)))}</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="right">
+            <button class="btn danger" data-delprop="${p.id}" ${t.properties.length<=1 ? "disabled":""}>Supprimer</button>
+          </div>
+        </div>
+      `).join("");
+
+      box.querySelectorAll("[data-p][data-k]").forEach(el => {
+        el.addEventListener("input", () => {
+          const pid = el.getAttribute("data-p");
+          const k = el.getAttribute("data-k");
+          const prop = t.properties.find(x => x.id === pid);
+          if(!prop) return;
+          if(k === "rentHc" || k === "charges") prop[k] = Number(el.value || 0);
+          else prop[k] = el.value;
+        });
+      });
+
+      box.querySelectorAll("[data-delprop]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const pid = btn.getAttribute("data-delprop");
+          if(t.properties.length <= 1) return;
+          t.properties = t.properties.filter(x => x.id !== pid);
+          renderProps();
+        });
+      });
+    }
+
+    renderProps();
+
+    $("#btnAddProp").addEventListener("click", () => {
+      t.properties.push({ id: uid(), label:`Logement ${t.properties.length+1}`, address:"", rentHc:0, charges:0 });
+      renderProps();
+    });
+
+    $("#btnSaveTenant").addEventListener("click", async () => {
+      t.fullName = $("#t_fullName").value.trim();
+      t.paymentMethod = $("#t_paymentMethod").value;
+      t.tenantAddress = $("#t_tenantAddress").value.trim();
+
+      if(!t.fullName){ alert("Nom du locataire obligatoire."); return; }
+      if(!t.properties.length || t.properties.some(p => !String(p.address||"").trim())){
+        alert("Chaque logement doit avoir une adresse.");
+        return;
+      }
+
+      t.properties = t.properties.map(p => ({
+        ...p,
+        label: String(p.label||"Logement").trim() || "Logement",
+        address: String(p.address||"").trim(),
+        rentHc: Number(p.rentHc||0),
+        charges: Number(p.charges||0),
+      }));
+
+      if(isEdit){
+        const idx = state.tenants.findIndex(x => x.id === t.id);
+        if(idx >= 0) state.tenants[idx] = t;
+      }else{
+        state.tenants.unshift(t);
+      }
+
+      await saveState();
+      toast(isEdit ? "Locataire mis à jour ✅" : "Locataire ajouté ✅");
+      renderTenants();
+    });
+
+    if(isEdit){
+      $("#btnCancelEdit").addEventListener("click", () => renderTenants());
+    }
+  }
+
+  function renderReceipts(){
+    $("#leftTitle").textContent = "Générer une quittance PDF";
+    $("#leftHint").textContent = "Montants modifiables + lignes (régularisation / remise)";
+
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = today.getMonth();
+
+    $("#leftBody").innerHTML = `
+      <div class="row">
+        <div>
+          <label>Locataire</label>
+          <select id="r_tenantId">
+            ${state.tenants.length ? state.tenants.map(t => `<option value="${t.id}">${escapeHtml(t.fullName)}</option>`).join("") : `<option value="">Aucun locataire</option>`}
+          </select>
+        </div>
+        <div>
+          <label>Logement</label>
+          <select id="r_propertyId"></select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Période (mois / année)</label>
+          <div class="row" style="margin:0; grid-template-columns:1fr 1fr; gap:10px">
+            <select id="r_month">
+              ${Array.from({length:12}).map((_,i) => `<option value="${i}" ${i===m?"selected":""}>${new Date(2026,i,1).toLocaleDateString("fr-FR",{month:"long"})}</option>`).join("")}
+            </select>
+            <input id="r_year" type="number" min="2000" max="2100" value="${y}">
+          </div>
+        </div>
+        <div>
+          <label>Date d’édition</label>
+          <input id="r_date" type="date" value="${toISODate(today)}">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Référence (optionnel)</label>
+          <input id="r_ref" placeholder="Ex : Q-${y}-${String(m+1).padStart(2,"0")}-001">
+        </div>
+        <div>
+          <label>Total (aperçu)</label>
+          <input id="r_totalPreview" disabled value="—" style="font-family:var(--mono)">
+        </div>
+      </div>
+
+      <div class="card" style="border-radius:18px">
+        <div class="head" style="border-bottom:1px solid var(--border)">
+          <h2>Montants</h2>
+          <div class="hint">modifiable au cas par cas</div>
+        </div>
+        <div class="body">
+          <div class="row">
+            <div>
+              <label>Loyer (hors charges) €</label>
+              <input id="r_rent" type="number" step="0.01" min="0" value="0">
+            </div>
+            <div>
+              <label>Charges €</label>
+              <input id="r_charges" type="number" step="0.01" value="0">
+            </div>
+          </div>
+
+          <div>
+            <label>Lignes supplémentaires</label>
+            <div id="adjList"></div>
+            <div class="actions" style="margin-top:8px">
+              <button class="btn" id="btnAddAdj">+ Ajouter une ligne</button>
+              <button class="btn" id="btnQuickReg">+ Régularisation charges</button>
+              <button class="btn" id="btnQuickDiscount">+ Remise</button>
+            </div>
+            <div class="mini">Montants négatifs = remise / avoir.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:12px">
+        <button class="btn primary" id="btnGenerate" ${state.tenants.length ? "" : "disabled"}>Générer le PDF</button>
+      </div>
+
+      <div class="note">Conseil : une quittance atteste un paiement (à générer après encaissement).</div>
+    `;
+
+    const draft = { adjustments: [] };
+    const tenantSel = $("#r_tenantId");
+    const propSel = $("#r_propertyId");
+
+    const getTenant = () => state.tenants.find(t => t.id === tenantSel.value);
+    const getProp = () => getTenant()?.properties?.find(p => p.id === propSel.value);
+
+    function setPropOptions(){
+      const t = getTenant();
+      const props = t?.properties || [];
+      propSel.innerHTML = props.map(p => `<option value="${p.id}">${escapeHtml(p.label||"Logement")}</option>`).join("");
+      propSel.value = props[0]?.id || "";
+      applyDefaults();
+    }
+    function applyDefaults(){
+      const p = getProp();
+      $("#r_rent").value = String(Number(p?.rentHc || 0));
+      $("#r_charges").value = String(Number(p?.charges || 0));
+      computeTotal();
+    }
+
+    function renderAdjs(){
+      const box = $("#adjList");
+      if(!draft.adjustments.length){
+        box.innerHTML = `<div class="mini">Aucune ligne supplémentaire.</div>`;
+        return;
+      }
+      box.innerHTML = draft.adjustments.map((a,i)=>`
+        <div class="item">
+          <div class="meta" style="width:100%">
+            <div class="row" style="margin:0; grid-template-columns: 1.4fr .6fr;">
+              <div>
+                <label>Libellé</label>
+                <input data-ai="${i}" data-k="label" value="${escapeHtml(a.label)}" placeholder="Ex : Régularisation charges">
+              </div>
+              <div>
+                <label>Montant €</label>
+                <input data-ai="${i}" data-k="amount" type="number" step="0.01" value="${Number(a.amount||0)}">
+              </div>
+            </div>
+          </div>
+          <div class="right"><button class="btn danger" data-delai="${i}">Supprimer</button></div>
+        </div>
+      `).join("");
+
+      box.querySelectorAll("[data-ai][data-k]").forEach(el=>{
+        el.addEventListener("input", ()=>{
+          const i = Number(el.getAttribute("data-ai"));
+          const k = el.getAttribute("data-k");
+          if(!draft.adjustments[i]) return;
+          if(k === "amount") draft.adjustments[i].amount = Number(el.value||0);
+          else draft.adjustments[i].label = el.value;
+          computeTotal();
+        });
+      });
+      box.querySelectorAll("[data-delai]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const i = Number(btn.getAttribute("data-delai"));
+          draft.adjustments.splice(i,1);
+          renderAdjs();
+          computeTotal();
+        });
+      });
+    }
+
+    function computeTotal(){
+      const rent = Number($("#r_rent").value||0);
+      const charges = Number($("#r_charges").value||0);
+      const extra = draft.adjustments.reduce((s,a)=>s+Number(a.amount||0),0);
+      const total = rent + charges + extra;
+      $("#r_totalPreview").value = euro(total);
+      return { rent, charges, total };
+    }
+
+    if(state.tenants.length){
+      tenantSel.value = state.tenants[0].id;
+      setPropOptions();
+    }
+    renderAdjs(); computeTotal();
+
+    tenantSel.addEventListener("change", setPropOptions);
+    propSel.addEventListener("change", applyDefaults);
+    $("#r_rent").addEventListener("input", computeTotal);
+    $("#r_charges").addEventListener("input", computeTotal);
+
+    $("#btnAddAdj").addEventListener("click", ()=>{ draft.adjustments.push({label:"Autre", amount:0}); renderAdjs(); computeTotal(); });
+    $("#btnQuickReg").addEventListener("click", ()=>{ draft.adjustments.push({label:"Régularisation de charges", amount:0}); renderAdjs(); computeTotal(); });
+    $("#btnQuickDiscount").addEventListener("click", ()=>{ draft.adjustments.push({label:"Remise exceptionnelle", amount:-0}); renderAdjs(); computeTotal(); });
+
+    $("#btnGenerate")?.addEventListener("click", async ()=>{
+      const tenant = getTenant();
+      const prop = getProp();
+      if(!tenant || !prop) return;
+
+      // Ensure font loaded for signature
+      if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch{} }
+
+      const monthIndex = Number($("#r_month").value);
+      const year = Number($("#r_year").value);
+      const dateStr = $("#r_date").value;
+      const periodLabel = cap(monthLabel(year, monthIndex));
+      const ref = ($("#r_ref").value || "").trim() || `Q-${year}-${String(monthIndex+1).padStart(2,"0")}-${tenant.fullName.replaceAll(" ","_")}`;
+
+      const rent = Number($("#r_rent").value||0);
+      const charges = Number($("#r_charges").value||0);
+      const lines = [
+        { label:"Loyer (hors charges)", amount: rent },
+        { label:"Charges", amount: charges },
+        ...draft.adjustments.filter(a => String(a.label||"").trim() && Number(a.amount||0) !== 0)
+      ];
+      const total = lines.reduce((s,l)=>s+Number(l.amount||0),0);
+
+      // Fill PDF
+      $("#pdfPeriod").textContent = `Période : ${periodLabel}`;
+      $("#pdfRef").textContent = ref;
+
+      const L = state.landlord;
+      $("#pdfLandlordLines").textContent = [L.fullName||"—", L.address||"", L.email?`Email : ${L.email}`:"", L.phone?`Tél : ${L.phone}`:""].filter(Boolean).join("\n") || "—";
+      $("#pdfTenantLines").textContent = [tenant.fullName||"—", tenant.tenantAddress||""].filter(Boolean).join("\n") || "—";
+      $("#pdfProperty").textContent = prop.address || "—";
+      $("#pdfPropertyLabel").textContent = prop.label ? `(${prop.label})` : "";
+
+      $("#pdfLines").innerHTML = lines.map(l=>`
+        <tr><td>${escapeHtml(l.label)}</td><td>${escapeHtml(euro(l.amount))}</td></tr>
+      `).join("");
+
+      $("#pdfTotal").textContent = euro(total);
+      $("#pdfTotalLine").textContent = `Total : ${euro(total)}`;
+
+      const city = L.city || "—";
+      const editedDate = dateStr ? formatFRDate(dateStr) : "—";
+      $("#pdfFooterLeft").innerHTML = `Fait à ${escapeHtml(city)}, le ${escapeHtml(editedDate)}<br/>Paiement : ${escapeHtml(tenant.paymentMethod||"—")}<br/><span style="color:#64748b">Document généré automatiquement.</span>`;
+
+      $("#pdfSignText").textContent = L.signatureName || L.fullName || "—";
+
+      const node = $("#pdfTemplate").firstElementChild;
+      const filename = `Quittance_${tenant.fullName}_${periodLabel.replace(" ","_")}.pdf`.replaceAll("/","-");
+
+      const opt = {
+        margin: [6,6,6,6],
+        filename,
+        image: { type:"jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit:"mm", format:"a4", orientation:"portrait" }
+      };
+
+      try{
+        await window.html2pdf().set(opt).from(node).save();
+        const receipt = {
+          id: uid(),
+          tenantId: tenant.id,
+          tenantName: tenant.fullName,
+          propertyId: prop.id,
+          propertyLabel: prop.label,
+          propertyAddress: prop.address,
+          year,
+          month: monthIndex,
+          period: periodLabel,
+          reference: ref,
+          dateIssued: dateStr,
+          rentHc: rent,
+          charges,
+          adjustments: draft.adjustments.map(a => ({
+            label: a.label,
+            amount: Number(a.amount || 0)
+          })),
+          total,
+          paymentMethod: tenant.paymentMethod,
+          createdAt: Date.now()
+        };
+
+        state.receipts.unshift(receipt);
+        await saveState();
+        toast("PDF généré et enregistré ✅");
+      }catch(e){
+        console.error(e);
+        alert("Impossible de générer le PDF (voir console).");
+      }
+    });
+  }
+
+  // ==========================================
+// FONCTION 1 : Afficher l'historique
+// ==========================================
+function renderHistory(){
+  $("#leftTitle").textContent = "Historique des quittances";
+  $("#leftHint").textContent = `${state.receipts.length} quittance(s)`;
+
+  const receipts = [...state.receipts].sort((a, b) => b.createdAt - a.createdAt);
+
+  // Calculer des statistiques
+  const currentYear = new Date().getFullYear();
+  const thisYear = receipts.filter(r => r.year === currentYear);
+  const totalThisYear = thisYear.reduce((sum, r) => sum + r.total, 0);
+
+  if(!receipts.length){
+    $("#leftBody").innerHTML = `
+      <div class="note">
+        Aucune quittance générée pour le moment.<br/>
+        Créez votre première quittance dans l'onglet "Quittances PDF".
+      </div>
+    `;
+    return;
+  }
+
+  // Grouper par année
+  const byYear = {};
+  receipts.forEach(r => {
+    if(!byYear[r.year]) byYear[r.year] = [];
+    byYear[r.year].push(r);
+  });
+
+  const stats = {
+  total: state.receipts.length,
+  thisYear: state.receipts.filter(r => r.year === currentYear).length,
+  totalAmount: state.receipts.reduce((sum, r) => sum + r.total, 0),
+  avgAmount: state.receipts.length ? 
+    state.receipts.reduce((sum, r) => sum + r.total, 0) / state.receipts.length : 0
+};
+
+  const yearsHtml = Object.keys(byYear).sort((a, b) => b - a).map(year => {
+    const yearReceipts = byYear[year];
+    const yearTotal = yearReceipts.reduce((sum, r) => sum + r.total, 0);
+
+    return `
+      <div class="card" style="border-radius:18px;margin-bottom:20px">
+        <div class="head" style="border-bottom:1px solid var(--border);background:rgba(0,0,0,.15)">
+          <h2 style="margin:0">${year}</h2>
+          <div class="badge ok">${yearReceipts.length} quittances • ${euro(yearTotal)}</div>
+        </div>
+        <div class="body">
+          <div class="list">
+            ${yearReceipts.map(r => `
+              <div class="item">
+                <div class="meta">
+                  <div class="name">${escapeHtml(r.tenantName)}</div>
+                  <div class="sub">
+                    📅 ${escapeHtml(r.period)}<br/>
+                    🏠 ${escapeHtml(r.propertyLabel || r.propertyAddress)}<br/>
+                    💰 ${euro(r.total)} • Réf: ${escapeHtml(r.reference)}
+                  </div>
+                </div>
+                <div class="right">
+                  <button class="btn" data-view="${r.id}" title="Voir les détails">👁️</button>
+                  <button class="btn" data-regen="${r.id}" title="Télécharger">📥</button>
+                  <button class="btn danger" data-delrec="${r.id}" title="Supprimer">🗑️</button>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  $("#leftBody").innerHTML = `
+    <div class="stats-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px">
+      <div class="badge ok" style="padding:12px;font-size:14px">
+        <div>Total ${currentYear}</div>
+        <div style="font-size:18px;margin-top:4px;font-family:var(--mono)">${euro(totalThisYear)}</div>
+      </div>
+      <div class="badge" style="padding:12px;font-size:14px">
+        <div>Quittances</div>
+        <div style="font-size:18px;margin-top:4px;font-family:var(--mono)">${receipts.length}</div>
+      </div>
+    </div>
+
+    ${yearsHtml}
+
+    <div class="note" style="margin-top:20px">
+      💡 <strong>Astuce :</strong> Cliquez sur 📥 pour re-télécharger une quittance, ou 👁️ pour voir les détails.
+    </div>
+  `;
+
+  // Event: Voir les détails
+  document.querySelectorAll("[data-view]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-view");
+      const receipt = state.receipts.find(r => r.id === id);
+      if(!receipt) return;
+      
+      showReceiptDetails(receipt);
+    });
+  });
+
+  // Event: Télécharger à nouveau
+  document.querySelectorAll("[data-regen]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.getAttribute("data-regen");
+      const receipt = state.receipts.find(r => r.id === id);
+      if(!receipt) return;
+      
+      await regeneratePDF(receipt);
+    });
+  });
+
+  // Event: Supprimer
+  document.querySelectorAll("[data-delrec]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const id = btn.getAttribute("data-delrec");
+      const receipt = state.receipts.find(r => r.id === id);
+      
+      if(!confirm(`Supprimer la quittance :\n\n${receipt.tenantName}\n${receipt.period}\n${euro(receipt.total)}\n\nCette action est irréversible.`)) return;
+      
+      state.receipts = state.receipts.filter(r => r.id !== id);
+      await saveState();
+      toast("Quittance supprimée 🗑️");
+      renderHistory();
+    });
+  });
+}
+
+
+// ==========================================
+// FONCTION 2 : Afficher les détails d'une quittance
+// ==========================================
+function showReceiptDetails(receipt){
+  const modal = document.createElement("div");
+  modal.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;";
+  
+  const content = document.createElement("div");
+  content.style.cssText = "background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);max-width:600px;width:100%;max-height:90vh;overflow-y:auto;padding:24px;";
+  
+  const allLines = [
+    { label: "Loyer (hors charges)", amount: receipt.rentHc },
+    { label: "Charges", amount: receipt.charges },
+    ...(receipt.adjustments || [])
+  ];
+
+  content.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div>
+        <h2 style="margin:0;font-size:22px">${escapeHtml(receipt.tenantName)}</h2>
+        <div style="color:var(--muted);margin-top:6px">${escapeHtml(receipt.period)}</div>
+      </div>
+      <button class="btn danger" onclick="this.closest('[style*=fixed]').remove()" style="margin:0">✖️</button>
+    </div>
+
+    <div style="background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">RÉFÉRENCE</div>
+      <div style="font-family:var(--mono);font-size:14px">${escapeHtml(receipt.reference)}</div>
+    </div>
+
+    <div style="background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">LOGEMENT</div>
+      <div style="font-weight:600">${escapeHtml(receipt.propertyLabel || "Logement")}</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:4px">${escapeHtml(receipt.propertyAddress)}</div>
+    </div>
+
+    <div style="background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">DÉTAIL</div>
+      ${allLines.map(l => `
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span>${escapeHtml(l.label)}</span>
+          <span style="font-family:var(--mono);font-weight:600">${euro(l.amount)}</span>
+        </div>
+      `).join("")}
+      <div style="display:flex;justify-content:space-between;padding:12px 0;margin-top:8px;font-size:18px;font-weight:700">
+        <span>TOTAL</span>
+        <span style="font-family:var(--mono);color:var(--accent)">${euro(receipt.total)}</span>
+      </div>
+    </div>
+
+    <div style="background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:12px;padding:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:13px">
+        <div>
+          <div style="color:var(--muted);margin-bottom:4px">Date d'émission</div>
+          <div>${formatFRDate(receipt.dateIssued)}</div>
+        </div>
+        <div>
+          <div style="color:var(--muted);margin-bottom:4px">Paiement</div>
+          <div>${escapeHtml(receipt.paymentMethod)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-group" style="margin-top:20px;display:flex;gap:10px">
+      <button class="btn primary" onclick="regeneratePDF(state.receipts.find(r=>r.id==='${receipt.id}'));this.closest('[style*=fixed]').remove()">
+        📥 Télécharger le PDF
+      </button>
+      <button class="btn" onclick="this.closest('[style*=fixed]').remove()">
+        Fermer
+      </button>
+    </div>
+  `;
+  
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+  
+  // Fermer au clic à l'extérieur
+  modal.addEventListener("click", (e) => {
+    if(e.target === modal) modal.remove();
+  });
+}
+
+
+// ==========================================
+// FONCTION 3 : Régénérer un PDF à partir de l'historique
+// ==========================================
+async function regeneratePDF(receipt){
+  if(!receipt){
+    toast("Quittance introuvable ⚠️");
+    return;
+  }
+
+  // Assurer que la font est chargée
+  if(document.fonts && document.fonts.ready){
+    try{ await document.fonts.ready; }catch{}
+  }
+
+  // Remplir le template PDF
+  $("#pdfPeriod").textContent = `Période : ${receipt.period}`;
+  $("#pdfRef").textContent = receipt.reference;
+
+  const L = state.landlord;
+  $("#pdfLandlordLines").textContent = [
+    L.fullName || "—",
+    L.address || "",
+    L.email ? `Email : ${L.email}` : "",
+    L.phone ? `Tél : ${L.phone}` : ""
+  ].filter(Boolean).join("\n") || "—";
+
+  $("#pdfTenantLines").textContent = [
+    receipt.tenantName || "—",
+    ""
+  ].filter(Boolean).join("\n") || "—";
+
+  $("#pdfProperty").textContent = receipt.propertyAddress || "—";
+  $("#pdfPropertyLabel").textContent = receipt.propertyLabel ? `(${receipt.propertyLabel})` : "";
+
+  const lines = [
+    { label: "Loyer (hors charges)", amount: receipt.rentHc },
+    { label: "Charges", amount: receipt.charges },
+    ...(receipt.adjustments || [])
+  ];
+
+  $("#pdfLines").innerHTML = lines.map(l => `
+    <tr>
+      <td>${escapeHtml(l.label)}</td>
+      <td>${escapeHtml(euro(l.amount))}</td>
+    </tr>
+  `).join("");
+
+  $("#pdfTotal").textContent = euro(receipt.total);
+  $("#pdfTotalLine").textContent = `Total : ${euro(receipt.total)}`;
+
+  const city = L.city || "—";
+  const editedDate = receipt.dateIssued ? formatFRDate(receipt.dateIssued) : "—";
+  $("#pdfFooterLeft").innerHTML = `Fait à ${escapeHtml(city)}, le ${escapeHtml(editedDate)}<br/>Paiement : ${escapeHtml(receipt.paymentMethod || "—")}<br/><span style="color:#64748b">Document généré automatiquement.</span>`;
+
+  $("#pdfSignText").textContent = L.signatureName || L.fullName || "—";
+
+  // Générer le PDF
+  const node = $("#pdfTemplate").firstElementChild;
+  const filename = `Quittance_${receipt.tenantName}_${receipt.period.replace(" ", "_")}.pdf`.replaceAll("/", "-");
+
+  const opt = {
+    margin: [6, 6, 6, 6],
+    filename,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+  };
+
+  try {
+    await window.html2pdf().set(opt).from(node).save();
+    toast("PDF téléchargé ✅");
+  } catch (e) {
+    console.error(e);
+    alert("Impossible de générer le PDF (voir console)");
+  }
+}
+
+  function renderHistoryWithSearch(){
+  $("#leftTitle").textContent = "Historique des quittances";
+  $("#leftHint").textContent = `${state.receipts.length} quittance(s)`;
+
+  let searchTerm = "";
+  let yearFilter = "all";
+
+  function applyFilters(){
+    let filtered = [...state.receipts];
+
+    // Recherche
+    if(searchTerm){
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(r =>
+        r.tenantName.toLowerCase().includes(term) ||
+        r.reference.toLowerCase().includes(term) ||
+        r.propertyLabel.toLowerCase().includes(term) ||
+        r.period.toLowerCase().includes(term)
+      );
+    }
+
+    // Filtre année
+    if(yearFilter !== "all"){
+      filtered = filtered.filter(r => r.year === Number(yearFilter));
+    }
+
+    renderReceiptsList(filtered);
+  }
+
+  function renderReceiptsList(receipts){
+    const listContainer = $("#receiptsList");
+    
+    if(!receipts.length){
+      listContainer.innerHTML = `
+        <div class="note">
+          Aucune quittance ne correspond à vos critères de recherche.
+        </div>
+      `;
+      return;
+    }
+
+    // [Code de rendu similaire à renderHistory() ...]
+  }
+
+  // Récupérer les années disponibles
+  const years = [...new Set(state.receipts.map(r => r.year))].sort((a, b) => b - a);
+
+  $("#leftBody").innerHTML = `
+    <div style="margin-bottom:20px">
+      <input 
+        id="searchInput" 
+        type="text" 
+        placeholder="🔍 Rechercher par nom, référence, période..." 
+        style="margin-bottom:12px"
+      />
+      
+      <select id="yearFilter">
+        <option value="all">Toutes les années</option>
+        ${years.map(y => `<option value="${y}">${y}</option>`).join("")}
+      </select>
+    </div>
+
+    <div id="receiptsList"></div>
+  `;
+
+  // Events
+  $("#searchInput").addEventListener("input", (e) => {
+    searchTerm = e.target.value;
+    applyFilters();
+  });
+
+  $("#yearFilter").addEventListener("change", (e) => {
+    yearFilter = e.target.value;
+    applyFilters();
+  });
+
+  applyFilters();
+}
+
+  function render(tab){
+    if(tab === "bailleur") return renderLandlord();
+    if(tab === "locataires") return renderTenants();
+    if(tab === "quittances") return renderReceipts();
+    if(tab === "historique") return renderHistory();
+  }
+
+  // --------------------
+  // Export / Import / Reset
+  // --------------------
+  $("#btnExport").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type:"application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "quittances_data.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("Export terminé 📦");
+  });
+
+  $("#btnImport").addEventListener("click", () => $("#fileImport").click());
+  $("#fileImport").addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      state = normalizeState(JSON.parse(text));
+      await saveState();
+      rerender();
+      toast("Import réussi ✅");
+    }catch{
+      alert("Fichier invalide.");
+    }finally{
+      e.target.value = "";
+    }
+  });
+
+  $("#btnReset").addEventListener("click", async () => {
+    if(!confirm("Tout effacer ?")) return;
+    state = structuredClone(defaultState);
+    await saveState();
+    setTab("bailleur");
+    toast("Réinitialisé ✅");
+  });
+
+  // Tabs events
+  document.querySelectorAll(".tab").forEach(t => {
+    t.addEventListener("click", () => setTab(t.dataset.tab));
+    t.addEventListener("keydown", (e) => { if(e.key==="Enter"||e.key===" ") setTab(t.dataset.tab); });
+  });
+
+  // Start
+  render("bailleur");
+  initFirebase();
+</script>
+</body>
+</html>

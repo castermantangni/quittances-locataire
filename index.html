@@ -531,6 +531,68 @@ textarea {
     align-items: flex-start;
   }
 }
+/* PDF */
+    .pdf-root{
+      width:210mm;
+      min-height:297mm;
+      padding:18mm 16mm;
+      background:#fff;
+      color:#0b1220;
+      font-family:var(--sans);
+    }
+    .pdf-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:14mm; margin-bottom:10mm; }
+    .pdf-badge{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+      color:#334155; padding:6px 10px;
+      border:1px solid #e2e8f0; border-radius:999px;
+    }
+    .pdf-title{ margin: 8px 0 0 0; font-size: 26px; letter-spacing:.2px; }
+    .pdf-period{ margin: 4px 0 0 0; font-size:14px; color:#334155; }
+
+    .pdf-boxes{ display:grid; grid-template-columns: 1fr 1fr; gap: 8mm; margin-bottom: 8mm; }
+    .pdf-box{ border: 1px solid #e2e8f0; border-radius: 14px; padding: 10mm; background:#fbfdff; }
+    .pdf-box h3{ margin:0 0 6px 0; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#475569; }
+    .pdf-line{ margin:3px 0; font-size:12.5px; white-space:pre-line; }
+
+    .pdf-prop{ border: 1px dashed #cbd5e1; border-radius: 14px; padding: 8mm 10mm; margin-bottom: 8mm; }
+    .pdf-prop h3{ margin:0 0 6px 0; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#475569; }
+    .pdf-muted{ color:#64748b; font-size:12px; }
+
+    .pdf-table{ width:100%; border-collapse: collapse; font-size:12.5px; }
+    .pdf-table th, .pdf-table td{ border-bottom: 1px solid #e2e8f0; padding:10px 6px; text-align:left; }
+    .pdf-table th{ font-size:12px; color:#475569; font-weight:650; }
+    .pdf-table td:last-child, .pdf-table th:last-child{ text-align:right; }
+
+    .pdf-total{
+      margin-top:6mm;
+      border:1px solid #e2e8f0;
+      border-radius:14px;
+      padding:8mm 10mm;
+      background: linear-gradient(135deg, rgba(110,168,255,.12), rgba(126,231,214,.10));
+    }
+    .pdf-total .big{ font-size:18px; font-weight:750; margin:0; }
+    .pdf-total .small{ margin:6px 0 0 0; color:#334155; font-size:12.5px; line-height:1.45; }
+
+    .pdf-footer{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:10mm;
+      margin-top:10mm;
+      padding-top:8mm;
+      border-top:1px solid #e2e8f0;
+    }
+    .pdf-footer .left{ color:#334155; font-size:11.5px; line-height:1.45; }
+    .pdf-sign{ width:70mm; text-align:right; }
+    .signatureText{
+      font-family:"Great Vibes","Brush Script MT",cursive;
+      font-size:34px;
+      line-height:1;
+      margin:0;
+      color:#0b1220;
+    }
+    .sigbox{ margin-top:8mm; border-top:1px solid #0b1220; padding-top:6px; color:#334155; font-size:11.5px; }
   </style>
 </head>
 
@@ -769,7 +831,10 @@ textarea {
     }catch{ return structuredClone(defaultState); }
   }
   function saveLocal(){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ landlord: state.landlord, tenants: state.tenants }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ landlord: state.landlord, tenants: state.tenants, receipts: state.receipts })
+    );
   }
 
   let state = loadLocal();
@@ -1163,6 +1228,48 @@ textarea {
     }
   }
 
+  async function exportPdfFromTemplate(filename){
+  const host = document.getElementById("pdfTemplate");
+  const node = host.firstElementChild; // .pdf-root
+
+  // Le parent en display:none casse souvent html2canvas => on le "montre" hors écran
+  const wasHidden = host.classList.contains("hidden");
+  const prevStyle = host.getAttribute("style");
+
+  host.classList.remove("hidden");
+  host.style.position = "fixed";
+  host.style.left = "-10000px";
+  host.style.top = "0";
+  host.style.width = "210mm";
+  host.style.opacity = "0";
+  host.style.pointerEvents = "none";
+
+  // Laisse le navigateur calculer le layout (sinon PDF blanc/coupé)
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  const opt = {
+    margin: [6,6,6,6],
+    filename,
+    image: { type:"jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff"
+    },
+    jsPDF: { unit:"mm", format:"a4", orientation:"portrait" }
+  };
+
+  try{
+    await exportPdfFromTemplate(filename);
+  } finally {
+    // restore
+    if (wasHidden) host.classList.add("hidden");
+    if (prevStyle) host.setAttribute("style", prevStyle);
+    else host.removeAttribute("style");
+  }
+}
+
+
   function renderReceipts(){
     $("#leftTitle").textContent = "Générer une quittance PDF";
     $("#leftHint").textContent = "Montants modifiables + lignes (régularisation / remise)";
@@ -1396,7 +1503,7 @@ textarea {
       };
 
       try{
-        await window.html2pdf().set(opt).from(node).save();
+        await exportPdfFromTemplate(filename);
         const receipt = {
           id: uid(),
           tenantId: tenant.id,
@@ -1714,7 +1821,7 @@ async function regeneratePDF(receipt){
   };
 
   try {
-    await window.html2pdf().set(opt).from(node).save();
+    await exportPdfFromTemplate(filename);
     toast("PDF téléchargé ✅");
   } catch (e) {
     console.error(e);

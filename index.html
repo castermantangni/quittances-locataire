@@ -153,6 +153,23 @@
           </tfoot>
         </table>
 
+        <!-- Relevé de compte (5 derniers mois) -->
+        <div class="pdf-statement" id="pdfStatementWrap" style="display:none">
+          <h3 class="pdf-statement-title">Relevé de compte (5 derniers mois)</h3>
+          <table class="pdf-table pdf-statement-table">
+            <thead>
+              <tr>
+                <th>Mois</th>
+                <th>Dû</th>
+                <th>Payé</th>
+                <th>Écart</th>
+              </tr>
+            </thead>
+            <tbody id="pdfStatementBody"></tbody>
+          </table>
+        </div>
+
+
         <div class="pdf-total">
           <p class="big" id="pdfTotalLine">Total : —</p>
           <p class="small">

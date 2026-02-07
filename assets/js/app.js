@@ -339,6 +339,79 @@ async function saveState() {
   }
 }
 
+//---------------------
+// releve
+//--------------------
+function ymKey(year, month){ return (Number(year) * 12) + Number(month); }
+
+function periodLabelFromYM(year, month){
+  return cap(monthLabel(Number(year), Number(month)));
+}
+
+function buildStatementRows({ tenantId, propertyId, targetYear, targetMonth, currentRow }) {
+  const targetKey = ymKey(targetYear, targetMonth);
+
+  // Receipts du locataire+logement, jusqu’au mois ciblé
+  const list = (state.receipts || [])
+    .filter(r => r.tenantId === tenantId && r.propertyId === propertyId)
+    .filter(r => ymKey(r.year, r.month) <= targetKey)
+    .sort((a,b) => ymKey(b.year,b.month) - ymKey(a.year,a.month));
+
+  // On exclut un doublon éventuel du mois courant (si déjà présent dans l’historique)
+  const currentKey = currentRow ? ymKey(currentRow.year, currentRow.month) : null;
+  const prev = currentKey == null ? list : list.filter(r => ymKey(r.year,r.month) !== currentKey);
+
+  // 4 derniers mois précédents + mois courant (=> max 5 lignes)
+  const picked = prev.slice(0, 4).map(r => ({
+    year: r.year,
+    month: r.month,
+    due: Number(r.rentHc || 0) + Number(r.charges || 0),
+    paid: Number(r.total || 0)
+  }));
+
+  if (currentRow) {
+    picked.push({
+      year: currentRow.year,
+      month: currentRow.month,
+      due: Number(currentRow.rentHc || 0) + Number(currentRow.charges || 0),
+      paid: Number(currentRow.total || 0)
+    });
+  }
+
+  // ordre chronologique (plus lisible dans le PDF)
+  picked.sort((a,b) => ymKey(a.year,a.month) - ymKey(b.year,b.month));
+
+  // max 5 (sécurité)
+  return picked.slice(-5);
+}
+
+function renderStatementInPdf(rows){
+  const wrap = $("#pdfStatementWrap");
+  const body = $("#pdfStatementBody");
+  if(!wrap || !body) return;
+
+  if(!rows || rows.length === 0){
+    wrap.style.display = "none";
+    body.innerHTML = "";
+    return;
+  }
+
+  wrap.style.display = "";
+  body.innerHTML = rows.map(r => {
+    const diff = Number(r.paid || 0) - Number(r.due || 0);
+    const diffStr = (diff >= 0 ? "+" : "−") + euro(Math.abs(diff)).replace("€", "").trim() + " €";
+    return `
+      <tr>
+        <td>${escapeHtml(periodLabelFromYM(r.year, r.month))}</td>
+        <td>${escapeHtml(euro(r.due))}</td>
+        <td>${escapeHtml(euro(r.paid))}</td>
+        <td>${escapeHtml(diffStr)}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+
 // --------------------
 // Tabs / rendering
 // --------------------
@@ -912,6 +985,19 @@ function renderReceipts() {
       <tr><td>${escapeHtml(l.label)}</td><td>${escapeHtml(euro(l.amount))}</td></tr>
     `).join("");
 
+    //-------------------------------------
+    //releve2
+    //-------------------------------------
+    // Relevé de compte (jusqu’à 5 derniers mois)
+    const statementRows = buildStatementRows({
+      tenantId: tenant.id,
+      propertyId: prop.id,
+      targetYear: year,
+      targetMonth: monthIndex,
+      currentRow: { year, month: monthIndex, rentHc: rent, charges, total }
+    });
+    renderStatementInPdf(statementRows);
+
     $("#pdfTotal").textContent = euro(total);
     $("#pdfTotalLine").textContent = `Total : ${euro(total)}`;
 
@@ -1209,6 +1295,18 @@ async function regeneratePDF(receipt) {
 
   $("#pdfTotal").textContent = euro(receipt.total);
   $("#pdfTotalLine").textContent = `Total : ${euro(receipt.total)}`;
+  
+//---------------------------------------------
+  // Relevé de compte (jusqu’à 5 derniers mois)
+  const statementRows = buildStatementRows({
+    tenantId: receipt.tenantId,
+    propertyId: receipt.propertyId,
+    targetYear: receipt.year,
+    targetMonth: receipt.month,
+    currentRow: { year: receipt.year, month: receipt.month, rentHc: receipt.rentHc, charges: receipt.charges, total: receipt.total }
+  });
+  renderStatementInPdf(statementRows);
+//-------------------------------------------
 
   const city = L.city || "—";
   const editedDate = receipt.dateIssued ? formatFRDate(receipt.dateIssued) : "—";

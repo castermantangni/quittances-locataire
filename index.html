@@ -3,201 +3,295 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Quittances — Gestion complète</title>
+  <title>Locataire Pro — Gestion locative</title>
 
-  <!-- PDF generator (doit être chargé avant app.js pour l’export PDF) -->
+  <!-- PDF generator -->
   <script defer src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
+  <!-- Chart.js for analytics -->
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  <!-- Styles -->
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 
 <body>
-  <div class="wrap">
 
-    <header>
-      <div>
-        <h1>Gestion locative</h1>
-        <p class="sub">Plusieurs logements • montants au cas par cas • signature auto • synchro Firebase (optionnel).</p>
-      </div>
-
-      <!-- Tabs (IMPORTANT : data-tab doit matcher app.js) -->
-      <div class="tabs" role="tablist">
-        <div class="tab" role="tab" tabindex="0" aria-selected="true" data-tab="bailleur">👤 Bailleur</div>
-        <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="locataires">🏠 Locataires</div>
-        <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="quittances">✨ Quittances PDF</div>
-        <div class="tab" role="tab" tabindex="0" aria-selected="false" data-tab="historique">📚 Historique</div>
-      </div>
-    </header>
-
-    <div class="grid">
-      <!-- Colonne principale -->
-      <section class="card">
-        <div class="head">
-          <h2 id="leftTitle">—</h2>
-          <div class="hint" id="leftHint">—</div>
-        </div>
-        <div class="body" id="leftBody"></div>
-      </section>
-
-      <!-- Sidebar / Outils -->
-      <aside class="card">
-        <div class="head">
-          <h2>Outils</h2>
-          <div class="hint">cloud • export</div>
-        </div>
-
-        <div class="body">
-          <!-- Badge cloud attendu par app.js -->
-          <div id="cloudStatus" class="badge warn">Cloud : non configuré</div>
-
-          <!-- Zone auth Firebase optionnelle -->
-          <div id="authBox" class="hidden" style="margin-top:12px">
-            <div class="row">
-              <div>
-                <label>Email</label>
-                <input id="auth_email" type="email" placeholder="ex: toi@email.com">
-              </div>
-              <div>
-                <label>Mot de passe</label>
-                <input id="auth_pass" type="password" placeholder="••••••••">
-              </div>
-            </div>
-
-            <div class="actions">
-              <button class="btn primary" id="btnLogin">Connexion</button>
-              <button class="btn" id="btnRegister">Créer un compte</button>
-              <button class="btn danger hidden" id="btnLogout">Déconnexion</button>
-            </div>
-
-            <div class="note" id="authMsg"></div>
-          </div>
-
-          <div class="note" id="cloudNote" style="margin-top:10px">
-            Pour activer la synchronisation : colle ta config Firebase dans
-            <span style="font-family:var(--mono)">window.FIREBASE_CONFIG</span>
-            (dans <span style="font-family:var(--mono)">assets/js/config.js</span>).
-          </div>
-
-          <div class="hr"></div>
-
-          <!-- Export / Import -->
-          <div>
-            <button class="btn" id="btnExport">Exporter (.json)</button>
-            <input type="file" id="fileImport" accept="application/json" class="hidden" />
-            <button class="btn" id="btnImport">Importer (.json)</button>
-            <div class="note">Pratique pour sauvegarder ou migrer vers un autre navigateur.</div>
-          </div>
-
-          <div class="hr"></div>
-
-          <!-- Reset + Toast -->
-          <div>
-            <button class="btn danger" id="btnReset">Réinitialiser</button>
-            <div class="toast" id="toast"></div>
-          </div>
-        </div>
-      </aside>
+  <!-- ── AUTH OVERLAY ── -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-bg">
+      <div class="auth-orb auth-orb-1"></div>
+      <div class="auth-orb auth-orb-2"></div>
+      <div class="auth-orb auth-orb-3"></div>
     </div>
 
-    <!-- PDF Template (attendu par app.js) -->
-    <div id="pdfTemplate" class="hidden">
-      <div class="pdf-root">
-        <div class="pdf-top">
-          <div>
-            <div class="pdf-badge">QUITTANCE • LOYER</div>
-            <h2 class="pdf-title">Quittance de loyer</h2>
-            <p class="pdf-period" id="pdfPeriod">Période : —</p>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:12px;color:#334155">Référence</div>
-            <div style="font-family:var(--mono);font-size:12px;color:#0b1220" id="pdfRef">—</div>
-          </div>
+    <div class="auth-card" id="authCard">
+      <div class="auth-logo">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="10" fill="url(#logoGrad)"/>
+          <path d="M18 8L28 13V23L18 28L8 23V13L18 8Z" stroke="#F5E6C8" stroke-width="1.5" fill="none"/>
+          <path d="M18 14L23 16.5V21.5L18 24L13 21.5V16.5L18 14Z" fill="#F5E6C8" opacity="0.6"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="36" y2="36">
+              <stop offset="0%" stop-color="#1a1a2e"/>
+              <stop offset="100%" stop-color="#0d0d1a"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span>Locataire Pro</span>
+      </div>
+
+      <!-- Login form -->
+      <div id="loginForm" class="auth-form active">
+        <h2 class="auth-title">Bon retour</h2>
+        <p class="auth-sub">Connectez-vous à votre espace de gestion</p>
+
+        <div class="field-group">
+          <label>Adresse email</label>
+          <input type="email" id="login_email" placeholder="vous@exemple.fr" autocomplete="email">
+        </div>
+        <div class="field-group">
+          <label>Mot de passe</label>
+          <input type="password" id="login_pass" placeholder="••••••••" autocomplete="current-password">
+          <button class="pass-toggle" data-target="login_pass" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
         </div>
 
-        <div class="pdf-boxes">
-          <div class="pdf-box">
-            <h3>Bailleur</h3>
-            <div class="pdf-line" id="pdfLandlordLines">—</div>
-          </div>
-          <div class="pdf-box">
-            <h3>Locataire</h3>
-            <div class="pdf-line" id="pdfTenantLines">—</div>
-          </div>
+        <button class="auth-btn primary" id="btnLogin">Se connecter</button>
+
+        <div class="auth-links">
+          <a href="#" id="goForgot">Mot de passe oublié ?</a>
+          <span>·</span>
+          <a href="#" id="goRegister">Créer un compte</a>
+        </div>
+        <div class="auth-msg" id="loginMsg"></div>
+      </div>
+
+      <!-- Register form -->
+      <div id="registerForm" class="auth-form">
+        <h2 class="auth-title">Créer un compte</h2>
+        <p class="auth-sub">Un email de vérification vous sera envoyé</p>
+
+        <div class="field-group">
+          <label>Adresse email</label>
+          <input type="email" id="reg_email" placeholder="vous@exemple.fr">
+        </div>
+        <div class="field-group">
+          <label>Mot de passe</label>
+          <input type="password" id="reg_pass" placeholder="8 caractères minimum">
+          <button class="pass-toggle" data-target="reg_pass" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="field-group">
+          <label>Confirmer le mot de passe</label>
+          <input type="password" id="reg_pass2" placeholder="••••••••">
         </div>
 
-        <div class="pdf-prop">
-          <h3>Logement</h3>
-          <div class="pdf-line" id="pdfProperty">—</div>
-          <div class="pdf-muted" id="pdfPropertyLabel"></div>
+        <button class="auth-btn primary" id="btnRegister">Créer mon compte</button>
+        <div class="auth-links">
+          <a href="#" id="goLogin">← Retour à la connexion</a>
         </div>
+        <div class="auth-msg" id="registerMsg"></div>
+      </div>
 
-        <table class="pdf-table">
-          <thead>
-            <tr>
-              <th>Détail</th>
-              <th>Montant</th>
-            </tr>
-          </thead>
-          <tbody id="pdfLines"></tbody>
-          <tfoot>
-            <tr>
-              <td style="font-weight:800">Total payé</td>
-              <td style="font-weight:900" id="pdfTotal">—</td>
-            </tr>
-          </tfoot>
-        </table>
-
-        <!-- Relevé de compte (5 derniers mois) -->
-        <div class="pdf-statement" id="pdfStatementWrap" style="display:none">
-          <h3 class="pdf-statement-title">Relevé de compte (5 derniers mois)</h3>
-          <table class="pdf-table pdf-statement-table">
-            <thead>
-              <tr>
-                <th>Mois</th>
-                <th>Dû</th>
-                <th>Payé</th>
-                <th>Écart</th>
-              </tr>
-            </thead>
-            <tbody id="pdfStatementBody"></tbody>
-          </table>
+      <!-- Email verification pending -->
+      <div id="verifyForm" class="auth-form">
+        <div class="verify-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </div>
+        <h2 class="auth-title">Vérifiez votre email</h2>
+        <p class="auth-sub" id="verifyEmailText">Un lien de confirmation a été envoyé à votre adresse.</p>
+        <button class="auth-btn" id="btnResendVerif">Renvoyer l'email</button>
+        <button class="auth-btn primary" id="btnCheckVerif">J'ai vérifié mon email</button>
+        <button class="auth-btn ghost" id="btnBackLogin">Changer de compte</button>
+        <div class="auth-msg" id="verifyMsg"></div>
+      </div>
 
-
-        <div class="pdf-total">
-          <p class="big" id="pdfTotalLine">Total : —</p>
-          <p class="small">
-            Le bailleur reconnaît avoir reçu la somme indiquée ci-dessus au titre du paiement
-            du loyer et des charges pour la période mentionnée. Cette quittance atteste du paiement intégral des sommes dues.
-          </p>
+      <!-- Forgot password -->
+      <div id="forgotForm" class="auth-form">
+        <h2 class="auth-title">Réinitialiser</h2>
+        <p class="auth-sub">Recevez un lien pour changer votre mot de passe</p>
+        <div class="field-group">
+          <label>Adresse email</label>
+          <input type="email" id="forgot_email" placeholder="vous@exemple.fr">
         </div>
-
-        <div class="pdf-footer">
-          <div class="left" id="pdfFooterLeft">
-            Fait à —, le —<br />
-            Paiement : —<br />
-            <span style="color:#64748b">Document généré automatiquement.</span>
-          </div>
-          <div class="pdf-sign">
-            <p class="signatureText" id="pdfSignText">—</p>
-            <div class="sigbox">Signature du bailleur</div>
-          </div>
-        </div>
+        <button class="auth-btn primary" id="btnForgot">Envoyer le lien</button>
+        <div class="auth-links"><a href="#" id="goLogin2">← Retour</a></div>
+        <div class="auth-msg" id="forgotMsg"></div>
       </div>
     </div>
-
   </div>
 
-  <!-- Config Firebase (optionnel) -->
-  <script src="assets/js/config.js"></script>
+  <!-- ── MAIN APP ── -->
+  <div id="app" class="app hidden">
 
-  <!-- App -->
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+          <rect width="36" height="36" rx="9" fill="url(#sideLogoGrad)"/>
+          <path d="M18 8L28 13V23L18 28L8 23V13L18 8Z" stroke="#F5E6C8" stroke-width="1.5" fill="none"/>
+          <path d="M18 14L23 16.5V21.5L18 24L13 21.5V16.5L18 14Z" fill="#F5E6C8" opacity="0.6"/>
+          <defs>
+            <linearGradient id="sideLogoGrad" x1="0" y1="0" x2="36" y2="36">
+              <stop offset="0%" stop-color="#1e1e30"/>
+              <stop offset="100%" stop-color="#12121f"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span>Locataire Pro</span>
+      </div>
+
+      <div class="sidebar-nav">
+        <button class="nav-item active" data-tab="dashboard">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Tableau de bord
+        </button>
+        <button class="nav-item" data-tab="bailleur">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Bailleur
+        </button>
+        <button class="nav-item" data-tab="locataires">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Locataires
+        </button>
+        <button class="nav-item" data-tab="quittances">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Quittances PDF
+        </button>
+        <button class="nav-item" data-tab="suivi">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Suivi paiements
+        </button>
+        <button class="nav-item" data-tab="historique">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Historique
+        </button>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-info" id="sideUserInfo">
+          <div class="user-avatar" id="sideUserAvatar">—</div>
+          <div class="user-details">
+            <div class="user-email" id="sideUserEmail">—</div>
+            <div class="user-role">Administrateur</div>
+          </div>
+        </div>
+        <div class="sidebar-tools">
+          <button class="tool-btn" id="btnExport" title="Exporter les données">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+          <button class="tool-btn" id="btnImportTrigger" title="Importer des données">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import
+          </button>
+          <button class="tool-btn danger" id="btnLogout" title="Déconnexion">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Déconnexion
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main-content">
+      <div class="top-bar">
+        <div>
+          <h1 id="pageTitle">Tableau de bord</h1>
+          <p class="page-sub" id="pageSub">Vue d'ensemble de votre gestion locative</p>
+        </div>
+        <div class="top-bar-right">
+          <div class="cloud-badge" id="cloudBadge">
+            <span class="cloud-dot"></span>
+            <span id="cloudBadgeText">Synchronisation...</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="mainBody"></div>
+    </main>
+  </div>
+
+  <!-- PDF Template (hidden) -->
+  <div id="pdfTemplate" class="hidden">
+    <div class="pdf-root">
+      <div class="pdf-top">
+        <div>
+          <div class="pdf-badge">QUITTANCE · LOYER</div>
+          <h2 class="pdf-title">Quittance de loyer</h2>
+          <p class="pdf-period" id="pdfPeriod">Période : —</p>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:#64748b;letter-spacing:.05em;text-transform:uppercase">Référence</div>
+          <div style="font-family:'DM Mono',monospace;font-size:12px;color:#0f172a;margin-top:4px" id="pdfRef">—</div>
+        </div>
+      </div>
+
+      <div class="pdf-boxes">
+        <div class="pdf-box">
+          <h3>Bailleur</h3>
+          <div class="pdf-line" id="pdfLandlordLines">—</div>
+        </div>
+        <div class="pdf-box">
+          <h3>Locataire</h3>
+          <div class="pdf-line" id="pdfTenantLines">—</div>
+        </div>
+      </div>
+
+      <div class="pdf-prop">
+        <h3>Logement</h3>
+        <div class="pdf-line" id="pdfProperty">—</div>
+        <div class="pdf-muted" id="pdfPropertyLabel"></div>
+      </div>
+
+      <table class="pdf-table">
+        <thead><tr><th>Détail</th><th>Montant</th></tr></thead>
+        <tbody id="pdfLines"></tbody>
+        <tfoot>
+          <tr>
+            <td style="font-weight:700">Total payé</td>
+            <td style="font-weight:800" id="pdfTotal">—</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="pdf-statement" id="pdfStatementWrap" style="display:none">
+        <h3 class="pdf-statement-title">Relevé de compte (5 derniers mois)</h3>
+        <table class="pdf-table pdf-statement-table">
+          <thead><tr><th>Mois</th><th>Dû</th><th>Payé</th><th>Écart</th></tr></thead>
+          <tbody id="pdfStatementBody"></tbody>
+        </table>
+      </div>
+
+      <div class="pdf-total">
+        <p class="big" id="pdfTotalLine">Total : —</p>
+        <p class="small">Le bailleur reconnaît avoir reçu la somme indiquée ci-dessus au titre du paiement du loyer et des charges pour la période mentionnée. Cette quittance atteste du paiement intégral des sommes dues.</p>
+      </div>
+
+      <div class="pdf-footer">
+        <div class="left" id="pdfFooterLeft">Fait à —, le —<br/>Paiement : —<br/><span style="color:#94a3b8">Document généré automatiquement.</span></div>
+        <div class="pdf-sign">
+          <p class="signatureText" id="pdfSignText">—</p>
+          <div class="sigbox">Signature du bailleur</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toastContainer"></div>
+
+  <!-- Hidden file input -->
+  <input type="file" id="fileImport" accept="application/json" class="hidden" />
+
+  <script src="assets/js/config.js"></script>
   <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>
